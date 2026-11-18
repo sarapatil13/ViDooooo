@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useLocation, useNavigate, Link, Navigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { SAMPLE_TASKS, SampleTask } from '../../data/sampleTasks';
+import { SAMPLE_TASKS, SampleTask, BENCHMARK_DATE_STR } from '../../data/sampleTasks';
 import { getFilteredTasks, getHomeDashboardTasks } from '../../data/taskFilters';
 import { WorkspaceSidebar } from './WorkspaceSidebar';
 import { WorkspaceTopBar } from './WorkspaceTopBar';
@@ -10,6 +10,15 @@ import { ListView } from './views/ListView';
 import { TaskDetailModal } from './TaskDetailModal';
 import { TaskCreateModal } from './TaskCreateModal';
 import { useAuth } from '../auth';
+
+/**
+ * The demo preview is anchored to a fixed day (see AGENTS.md), so its pickers
+ * must treat that moment as "now" to agree with the Today / Upcoming views.
+ */
+const PREVIEW_NOW = (() => {
+  const [y, m, d] = BENCHMARK_DATE_STR.split('-').map(Number);
+  return new Date(y, m - 1, d, 12, 0);
+})();
 
 export interface WorkspaceLayoutProps {
   isPreview?: boolean;
@@ -376,6 +385,7 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         onCreateTask={handleCreateTask}
+        now={isPreview ? PREVIEW_NOW : undefined}
       />
 
       {/* Floating Confirmation Toast */}
