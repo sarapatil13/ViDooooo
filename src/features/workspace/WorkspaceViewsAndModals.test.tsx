@@ -90,6 +90,20 @@ describe('Workspace Views and Modals', () => {
       expect(screen.getByRole('heading', { name: /tasks/i })).toBeInTheDocument();
     });
 
+    it('uses an injected runtime date for authenticated dashboard sections', () => {
+      const now = new Date(2026, 10, 19, 12, 0);
+      render(
+        <MemoryRouter>
+          <HomeView tasks={SAMPLE_TASKS} now={now} onTaskClick={vi.fn()} />
+        </MemoryRouter>
+      );
+
+      expect(screen.getByText(/Thursday, 19 November 2026/i)).toBeInTheDocument();
+      expect(screen.getByText(/As of 19\/11\/2026/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /next best task/i })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /workload insight/i })).toBeInTheDocument();
+    });
+
     it('switches between Dashboard and Tasks tabs seamlessly', () => {
       render(
         <MemoryRouter>
