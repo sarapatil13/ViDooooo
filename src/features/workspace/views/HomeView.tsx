@@ -49,7 +49,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
   basePath = '/preview',
   user,
   tasks,
-  dashboard,
   initialTab = 'dashboard',
   initialStatus = 'today',
   onTaskClick,
@@ -61,7 +60,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const allTasks = tasks ?? SAMPLE_TASKS;
   const benchmarkDateStr = toDateStr(currentNow);
   const benchmarkDateTime = currentNow.toISOString();
-  const currentDashboard = dashboard ?? getHomeDashboardTasks(allTasks, benchmarkDateStr, benchmarkDateTime);
+  const currentDashboard = getHomeDashboardTasks(allTasks, benchmarkDateStr, benchmarkDateTime);
   const todayLabel = currentNow.toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'long',
