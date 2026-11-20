@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { Button, Badge, Card, Input } from './index';
+import { Button, Badge, Card, Input, ErrorBoundary } from './index';
 
 describe('UI Primitives', () => {
   describe('Button', () => {
@@ -59,6 +59,23 @@ describe('UI Primitives', () => {
       render(<Input label="Task Title" error="Title is required" />);
       expect(screen.getByText(/title is required/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/task title/i)).toHaveClass('border-[var(--red)]');
+    });
+  });
+
+  describe('ErrorBoundary', () => {
+    it('catches render errors and renders fallback UI', () => {
+      const Bomb = () => {
+        throw new Error('Test explosion');
+      };
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      render(
+        <ErrorBoundary>
+          <Bomb />
+        </ErrorBoundary>
+      );
+      expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
+      expect(screen.getByText(/test explosion/i)).toBeInTheDocument();
+      spy.mockRestore();
     });
   });
 });

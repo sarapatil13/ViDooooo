@@ -49,5 +49,47 @@ describe('WorkspaceSidebar', () => {
     fireEvent.click(btn);
     expect(handleNewTask).toHaveBeenCalledTimes(1);
   });
+
+  it('renders teams and triggers create team callback', () => {
+    const handleCreateTeam = vi.fn();
+    const mockTeams = [
+      {
+        id: 'team-alpha',
+        name: 'Alpha Launch',
+        leadId: 'demo-user-1',
+        leadEmail: 'demo@vido.app',
+        createdAt: '2026-11-01T00:00:00Z',
+        members: [],
+      },
+      {
+        id: 'team-beta',
+        name: 'Beta Platform',
+        leadId: 'other-user',
+        leadEmail: 'other@vido.app',
+        createdAt: '2026-11-02T00:00:00Z',
+        members: [],
+      },
+    ];
+
+    render(
+      <MemoryRouter initialEntries={['/preview']}>
+        <WorkspaceSidebar
+          counts={mockCounts}
+          user={{ id: 'demo-user-1', name: 'Demo User', email: 'demo@vido.app' }}
+          teams={mockTeams}
+          onCreateTeamClick={handleCreateTeam}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Teams & Shared Projects')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /alpha launch/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /beta platform/i })).toBeInTheDocument();
+    expect(screen.getByText('LEAD')).toBeInTheDocument();
+
+    const createBtn = screen.getByRole('button', { name: /^create team$/i });
+    fireEvent.click(createBtn);
+    expect(handleCreateTeam).toHaveBeenCalled();
+  });
 });
 

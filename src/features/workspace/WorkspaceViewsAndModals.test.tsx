@@ -279,5 +279,20 @@ describe('Workspace Views and Modals', () => {
       expect(screen.getByText('Buy Groceries for Dinner')).toBeInTheDocument();
       expect(screen.getByText(/task "buy groceries for dinner" added/i)).toBeInTheDocument();
     });
+
+    it('renders team space view when navigating to /preview/team/:teamId', async () => {
+      render(
+        <MemoryRouter initialEntries={['/preview/team/team-alpha-launch']}>
+          <Routes>
+            <Route path="/preview/*" element={<WorkspaceLayout />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      // Verify team header and roadmap are rendered
+      await screen.findByRole('heading', { level: 2, name: /alpha launch/i });
+      expect(screen.getByText(/phased milestone roadmap/i)).toBeInTheDocument();
+      expect(screen.getByText(/team tasks & deliverables/i)).toBeInTheDocument();
+    });
   });
 });

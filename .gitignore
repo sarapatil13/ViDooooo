@@ -19,6 +19,10 @@ test-results/
 .vite/
 .cache/
 *.tsbuildinfo
+.vido-local-dev-store.json
+*.db
+*.db-journal
+server/dist/
 
 # Environment variables
 .env

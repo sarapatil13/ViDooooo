@@ -1,0 +1,93 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Team {
+  id          String           @id @default(uuid())
+  name        String
+  description String
+  leadId      String
+  leadEmail   String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  members     TeamMember[]
+  invitations TeamInvitation[]
+  milestones  TeamMilestone[]
+  tasks       TeamTask[]
+}
+
+model TeamMember {
+  id        String   @id @default(uuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId    String
+  email     String
+  name      String
+  role      String   // "lead" | "member"
+  joinedAt  DateTime @default(now())
+
+  @@unique([teamId, userId])
+}
+
+model TeamInvitation {
+  id           String   @id @default(uuid())
+  teamId       String
+  team         Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamName     String
+  inviterId    String
+  inviterName  String
+  inviterEmail String
+  inviteeEmail String
+  status       String   @default("pending") // "pending" | "accepted" | "rejected"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model TeamMilestone {
+  id         String     @id @default(uuid())
+  teamId     String
+  team       Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  title      String
+  targetDate String
+  status     String     @default("upcoming") // "completed" | "active" | "upcoming"
+  orderIndex Int
+  createdAt  DateTime   @default(now())
+  tasks      TeamTask[]
+}
+
+model TeamTask {
+  id            String           @id @default(uuid())
+  teamId        String
+  team          Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  milestoneId   String?
+  milestone     TeamMilestone?   @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  title         String
+  description   String
+  deadline      String
+  priority      String           // "low" | "medium" | "high" | "urgent"
+  status        String           @default("active") // "active" | "completed"
+  progress      Int              @default(0) // 0 - 100
+  assigneeId    String
+  assigneeName  String
+  assigneeEmail String
+  leadId        String
+  createdAt     DateTime         @default(now())
+  completedAt   DateTime?
+  checkpoints   TaskCheckpoint[]
+}
+
+model TaskCheckpoint {
+  id         String   @id @default(uuid())
+  taskId     String
+  task       TeamTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorId   String
+  authorName String
+  timestamp  DateTime @default(now())
+  progress   Int
+  note       String
+}

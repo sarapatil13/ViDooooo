@@ -14,6 +14,11 @@ ViDo/
 ├── .agents/                 # OpenSpec local skills and agent tooling
 ├── openspec/                # OpenSpec specification and change tracking
 ├── public/                  # Static assets served untouched by Vite
+├── server/                  # NestJS backend application with Prisma ORM and SSE
+│   ├── prisma/              # Prisma schema, SQLite local database, and migrations
+│   ├── src/                 # NestJS modules (auth, teams, invitations, milestones, tasks, events)
+│   ├── package.json         # Backend dependencies and scripts
+│   └── tsconfig.json        # Backend TypeScript configuration
 ├── src/
 │   ├── components/ui/       # Domain-agnostic reusable UI primitives (Button, Card, Badge, etc.)
 │   ├── data/                # Data types, deterministic fixtures, pure filtering & logic
@@ -85,13 +90,36 @@ Each subfolder under `src/features/` encapsulates a complete user-facing product
   - Must remain clearly designated as an **interactive preview** with sample data.
   - Must provide the left-aligned **Back to Landing Page** navigation on the persistent top banner.
 
-#### 3. `src/features/style-lab/`
+#### 3. `src/features/teams/`
+- **Route**: `/workspace/team/:teamId`, `/preview/team/:teamId`
+- **Components & Modules**:
+  - `types.ts`: Team models (`Team`, `TeamMember`, `TeamInvitation`, `TeamMilestone`, `TeamTask`, `UserProfile`).
+  - `teamRepository.ts`: Dual-mode storage interface and environment-aware factory (`getTeamRepository()`).
+  - `MockTeamRepository.ts`: In-memory and `localStorage` mock repository supporting zero-credential offline testing.
+  - `SupabaseTeamRepository.ts`: Production Supabase PostgreSQL and Realtime client.
+  - `NotificationBell.tsx`: Top utility bar invitation alert with interactive Accept and Reject controls.
+  - `InviteMemberModal.tsx`: Google email member invitation modal with duplicate prevention.
+  - `CreateTeamModal.tsx`: Team workspace creation dialog with automatic Team Lead designation.
+  - `MilestoneRoadmap.tsx`: Phased roadmap component displaying project milestones, sequence, and status.
+  - `TeamTaskRow.tsx`: Shared task deliverable with lead-driven permission enforcement (assignee/lead editable, member read-only).
+  - `TeamTaskCreateModal.tsx`: Milestone-linked team task creation for Team Leads.
+  - `TeamSpaceView.tsx`: Comprehensive team dashboard with milestone roadmap, member roster, and filtered task backlog.
+
+#### 4. `src/features/style-lab/`
 - **Route**: `/style-lab`
 - **Components**: `StyleLab.tsx` and colocated test `StyleLab.test.tsx`.
 - **Purpose**: Live sandbox allowing users and developers to test the three core design palettes (`Cobalt Blue`, `Deep Indigo`, and `Forest Green`).
 
 ### `src/test/` — Testing Infrastructure
 - `setup.ts`: Configures `@testing-library/jest-dom` matchers and mock polyfills for Happy DOM.
+
+### `server/` — Dedicated NestJS Backend & Prisma ORM
+- **Purpose**: Enterprise backend application providing REST endpoints, Prisma ORM modeling, Firebase token validation, and Server-Sent Events (SSE).
+- **Subdirectories**:
+  - `server/prisma/`: SQLite schema (`schema.prisma`) for zero-setup local development and PostgreSQL production configuration.
+  - `server/src/auth/`: Firebase ID token decoder and `FirebaseAuthGuard` supporting the local Firebase Auth Emulator (`127.0.0.1:9099`).
+  - `server/src/teams/`, `invitations/`, `milestones/`, `tasks/`: Domain controllers and services.
+  - `server/src/events/`: Real-time SSE event broadcaster (`/api/events/stream`).
 
 ### `openspec/` & `.agents/` — Spec-Driven Workflow
 - `openspec/`: OpenSpec directory storing specs, changes, proposals, and tasks.

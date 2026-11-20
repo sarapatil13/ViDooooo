@@ -8,6 +8,8 @@ A modern task-management workspace built for focused individuals and transparent
 
 [![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev/)
 [![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
+[![NestJS](https://img.shields.io/badge/NestJS_11-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)](https://nestjs.com/)
+[![Prisma](https://img.shields.io/badge/Prisma_6-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Firebase](https://img.shields.io/badge/Firebase_Auth-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
@@ -100,6 +102,8 @@ ViDo offers a fully interactive client-side routing structure:
 | `/preview/needs-attention` | **Needs Attention** | Overdue or urgent tasks requiring immediate action. |
 | `/preview/completed` | **Completed Backlog** | Historical log of successfully delivered responsibilities. |
 | `/preview/archived` | **Archived Tasks** | Shelved responsibilities preserved with full checkpoint audit logs. |
+| `/preview/team/:teamId` | **Team Workspace Demo** | Shared team space preview with phased milestones, member roster, and collaborative task backlog. |
+| `/workspace/team/:teamId` | **Team Workspace** | Authenticated shared team workspace with lead permissions, member assignments, and progress tracking. |
 | `/style-lab` | **Design System Lab** | Interactive sandbox for testing accent palettes (`Cobalt Blue`, `Deep Indigo`, `Forest Green`). |
 
 ---
@@ -111,6 +115,13 @@ ViDo offers a fully interactive client-side routing structure:
 - **Local Testing via Auth Emulator**: Automated local emulator detection and startup on port `9099` with zero cloud credentials required.
 - **User-Scoped Task Storage**: Each authenticated user gets an isolated workspace backlog stored in browser local storage keyed to their unique User ID (`vido_tasks_<uid>`).
 - **Zero-Barrier Public Demo**: Guest users can inspect the complete interface via `/preview/*` without needing an account.
+
+### 👥 Team Workspaces & Shared Coordination
+- **Unified Sidebar Navigation**: Personal views (*Dashboard*, *Tasks*) alongside active collaborative spaces under `TEAMS & SHARED PROJECTS`.
+- **Email-Based Invitations**: Team Leads invite collaborators by Google email address with duplicate checking and case-insensitive matching.
+- **In-App Notification Center**: Top utility bar notification bell (`🔔`) alerts invited users in real-time, providing one-click **Accept** and **Reject** actions.
+- **Phased Milestone Roadmap**: Common project goals broken down into sequential delivery phases with target dates and status badges (`Completed`, `Active Phase`, `Upcoming`).
+- **Lead-Driven Permissions**: Team Leads administer team settings, milestones, and task assignments. Assignees maintain ownership over their progress (0–100%) and checkpoint logs. Tasks are read-only for non-assigned teammates.
 
 ### ✅ Task Lifecycle & Checkpoints
 - **Incremental Progress Tracking**: Measure progress continuously (0% to 100%) rather than relying on binary done/not-done toggles.
@@ -153,15 +164,23 @@ Get ViDo up and running on your local machine in under two minutes.
    ```
 
 3. **Start the local development server:**
-   ```bash
-   npm run dev
-   ```
+   - **Full Stack (Frontend + NestJS Backend API)**:
+     ```bash
+     npm run dev:all
+     ```
+     *(Runs Vite on `http://localhost:5173` and NestJS on `http://localhost:3001` with SQLite `dev.db`)*
+
+   - **Frontend Only (Offline Mock / Zero Prerequisite)**:
+     ```bash
+     npm run dev
+     ```
+     *(Runs Vite with MockTeamRepository and dev server bridge)*
 
 4. **Open your browser:**
    Navigate to [http://localhost:5173](http://localhost:5173).
 
 > [!TIP]
-> When you run `npm run dev`, Vite will automatically check if the Firebase Auth Emulator is running on port `9099`. If not, it will check for Java and launch the emulator in the background automatically!
+> When you run `npm run dev` or `npm run dev:all`, Vite will automatically check if the Firebase Auth Emulator is running on port `9099`. If not, it will check for Java and launch the emulator in the background automatically!
 
 ---
 
@@ -190,16 +209,44 @@ ViDo is configured for **zero-friction local testing**. You do not need a Google
 
 ---
 
+## 👥 Collaborative Team Spaces & Multi-Backend Architecture
+
+ViDo supports three distinct backend architectures designed for zero-friction local testing as well as production scalability:
+
+### 1. Dedicated NestJS Backend with Prisma ORM & SSE (Recommended Local API)
+For full-stack developers who want a dedicated TypeScript API without any cloud dependency:
+- **Zero Cloud Setup**: Uses Prisma ORM with a local SQLite database (`server/prisma/dev.db`).
+- **Concurrent Startup**: Run `npm run dev:all` to launch the Vite frontend (:5173) and NestJS backend (:3001) together.
+- **Real-Time Push**: Server-Sent Events (SSE) broadcast team invitations and task updates in real-time across tabs and windows.
+- **Firebase AuthGuard**: Verifies Firebase ID tokens from both the local Firebase Emulator (`127.0.0.1:9099`) and live Firebase.
+- **Production Switching**: Seamlessly switches from SQLite to PostgreSQL by configuring `DATABASE_URL` in production.
+
+### 2. Offline Mock Repository & Vite Sync Bridge (Default Frontend-Only)
+When you clone the repository and run `npm run dev`:
+- **Zero Configuration**: Uses `MockTeamRepository` with the Vite dev server SSE sync bridge.
+- **Preloaded Personas & Data**: Test immediately with preconfigured teams (*Alpha Launch*), phased milestones, and simulated invitations.
+
+### 3. Optional Production Supabase Integration
+For teams preferring a managed PostgreSQL BaaS:
+1. Create a Supabase project at [supabase.com](https://supabase.com).
+2. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env.local`.
+3. Restart Vite (`npm run dev`). ViDo's `getTeamRepository()` auto-detects credentials and connects to Supabase PostgreSQL and Realtime channels.
+
+---
+
 ## 🧪 Verification & Scripts
 
-ViDo enforces high engineering standards. All pull requests and commits should pass all three core verification checks.
+ViDo enforces high engineering standards. All pull requests and commits should pass all core verification checks.
 
 | Command | Description |
 |---|---|
+| `npm run dev:all` | Starts Vite frontend (:5173) and NestJS backend (:3001) concurrently. |
 | `npm run dev` | Starts the Vite dev server with automated Firebase Emulator orchestration. |
-| `npm test` | Runs the full Vitest suite (38 unit & integration tests across 10 test suites). |
+| `npm run dev:server` | Starts the NestJS backend with live reload (`ts-node-dev`). |
+| `npm run build:server`| Compiles the NestJS backend into `server/dist/`. |
+| `npm test` | Runs the full Vitest suite (80+ unit & integration tests across 20+ test suites). |
 | `npm run test:watch` | Runs Vitest in interactive watch mode for active TDD development. |
-| `npm run typecheck` | Validates TypeScript types across the entire project with zero emit (`tsc -b --noEmit`). |
+| `npm run typecheck` | Validates TypeScript types across the entire frontend (`tsc -b --noEmit`). |
 | `npm run build` | Compiles an optimized, minified production build into `dist/`. |
 | `npm run preview` | Locally previews the compiled production build from `dist/`. |
 | `npm run emulators` | Starts the standalone Firebase Auth Emulator on port 9099. |
@@ -253,6 +300,9 @@ ViDo uses Tailwind CSS v4 with semantic CSS Custom Properties (`var(--token)`), 
 | Layer | Technology | Purpose |
 |---|---|---|
 | **Frontend Framework** | [React 19](https://react.dev/) | Declarative, component-based user interface. |
+| **Backend Framework** | [NestJS 11](https://nestjs.com/) | Dedicated enterprise TypeScript backend service (`server/`). |
+| **ORM & Database** | [Prisma 6](https://www.prisma.io/) + [SQLite](https://www.sqlite.org/) | File-based local database (`dev.db`) with PostgreSQL production compatibility. |
+| **Real-Time Push** | Server-Sent Events (SSE) | Push delivery for team invites and notification alerts (`/api/events/stream`). |
 | **Authentication** | [Firebase 13 (Auth)](https://firebase.google.com/) | Google OAuth integration with local emulator support. |
 | **Bundler & Tooling** | [Vite 6](https://vite.dev/) | Fast HMR dev server and optimized ESM builds. |
 | **Language** | [TypeScript 5.7](https://www.typescriptlang.org/) | Strict compile-time safety and self-documenting models. |

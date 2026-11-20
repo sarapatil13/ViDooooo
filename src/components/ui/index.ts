@@ -5,3 +5,4 @@ export * from './Input';
 export * from './NoticeModal';
 export * from './DatePicker';
 export * from './TimePicker';
+export * from './ErrorBoundary';
