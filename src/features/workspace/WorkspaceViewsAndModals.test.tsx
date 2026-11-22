@@ -17,7 +17,7 @@ describe('Workspace Views and Modals', () => {
 
       render(
         <MemoryRouter>
-          <HomeView dashboard={dashboard} onTaskClick={handleClick} />
+          <HomeView dashboard={dashboard} now={new Date(2026, 10, 17, 12, 0)} onTaskClick={handleClick} />
         </MemoryRouter>
       );
 
@@ -52,7 +52,7 @@ describe('Workspace Views and Modals', () => {
     it('supports dynamic filter addition, pill removal, and clear all filters in Tasks tab', () => {
       render(
         <MemoryRouter>
-          <HomeView tasks={SAMPLE_TASKS} onTaskClick={vi.fn()} initialTab="tasks" />
+          <HomeView tasks={SAMPLE_TASKS} now={new Date(2026, 10, 17, 12, 0)} onTaskClick={vi.fn()} initialTab="tasks" />
         </MemoryRouter>
       );
 
@@ -93,7 +93,7 @@ describe('Workspace Views and Modals', () => {
     it('renders Dashboard by default and Tasks view when initialTab is tasks without in-page dual navigation', () => {
       const { rerender } = render(
         <MemoryRouter>
-          <HomeView tasks={SAMPLE_TASKS} onTaskClick={vi.fn()} />
+          <HomeView tasks={SAMPLE_TASKS} now={new Date(2026, 10, 17, 12, 0)} onTaskClick={vi.fn()} />
         </MemoryRouter>
       );
 
@@ -106,7 +106,7 @@ describe('Workspace Views and Modals', () => {
       // Render with initialTab="tasks"
       rerender(
         <MemoryRouter>
-          <HomeView tasks={SAMPLE_TASKS} onTaskClick={vi.fn()} initialTab="tasks" />
+          <HomeView tasks={SAMPLE_TASKS} now={new Date(2026, 10, 17, 12, 0)} onTaskClick={vi.fn()} initialTab="tasks" />
         </MemoryRouter>
       );
 
@@ -120,7 +120,7 @@ describe('Workspace Views and Modals', () => {
     it('does not show completed tasks in the tasks section', () => {
       render(
         <MemoryRouter>
-          <HomeView tasks={SAMPLE_TASKS} onTaskClick={vi.fn()} initialTab="tasks" />
+          <HomeView tasks={SAMPLE_TASKS} now={new Date(2026, 10, 17, 12, 0)} onTaskClick={vi.fn()} initialTab="tasks" />
         </MemoryRouter>
       );
 
@@ -225,8 +225,8 @@ describe('Workspace Views and Modals', () => {
         />
       );
 
-      const dueTimeInput = screen.getByLabelText(/due time \(optional\)/i);
-      expect(dueTimeInput).toHaveValue('23:59');
+      const dueTimeTrigger = screen.getByLabelText(/due time \(optional\)/i);
+      expect(dueTimeTrigger).toHaveTextContent(/11:59 PM/i);
     });
 
     it('defaults deadline time to 23:59 when time is left blank', () => {
@@ -269,15 +269,12 @@ describe('Workspace Views and Modals', () => {
           isOpen={true}
           onClose={handleClose}
           onCreateTask={handleCreate}
+          initialDueDate="2020-01-01"
         />
       );
 
       const titleInput = screen.getByLabelText(/task title \*/i);
       fireEvent.change(titleInput, { target: { value: 'Distant Past Task' } });
-
-      const dateInput = screen.getByLabelText(/target due date \*/i);
-      // Pick a date in the distant past (e.g. 2020-01-01)
-      fireEvent.change(dateInput, { target: { value: '2020-01-01' } });
 
       const saveBtn = screen.getByRole('button', { name: /^create task$/i });
       expect(saveBtn).toBeDisabled();
@@ -298,15 +295,12 @@ describe('Workspace Views and Modals', () => {
           isOpen={true}
           onClose={handleClose}
           onCreateTask={handleCreate}
+          initialDueTime="00:01"
         />
       );
 
       const titleInput = screen.getByLabelText(/task title \*/i);
       fireEvent.change(titleInput, { target: { value: 'Past Time Task' } });
-
-      // Setting 00:01 on today date is before current time unless test runs at exactly midnight
-      const timeInput = screen.getByLabelText(/due time/i);
-      fireEvent.change(timeInput, { target: { value: '00:01' } });
 
       const saveBtn = screen.getByRole('button', { name: /^create task$/i });
       const nowTime = `${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}`;
@@ -323,11 +317,21 @@ describe('Workspace Views and Modals', () => {
       const handleClose = vi.fn();
       const handleCreate = vi.fn();
 
+      // Backdate start to 3 days ago
+      const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+      const threeDaysAgoStr = `${threeDaysAgo.getFullYear()}-${String(threeDaysAgo.getMonth() + 1).padStart(2, '0')}-${String(threeDaysAgo.getDate()).padStart(2, '0')}`;
+
+      // Set deadline to 2 days ago (which is after start date and within 7-day window)
+      const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+      const twoDaysAgoStr = `${twoDaysAgo.getFullYear()}-${String(twoDaysAgo.getMonth() + 1).padStart(2, '0')}-${String(twoDaysAgo.getDate()).padStart(2, '0')}`;
+
       render(
         <TaskCreateModal
           isOpen={true}
           onClose={handleClose}
           onCreateTask={handleCreate}
+          initialStartDate={threeDaysAgoStr}
+          initialDueDate={twoDaysAgoStr}
         />
       );
 
@@ -337,17 +341,6 @@ describe('Workspace Views and Modals', () => {
       // Start Date input is directly accessible (optional, date-only)
       const startDateInput = screen.getByLabelText(/start date \(optional\)/i);
       expect(startDateInput).toBeInTheDocument();
-
-      // Backdate start to 3 days ago
-      const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
-      const threeDaysAgoStr = `${threeDaysAgo.getFullYear()}-${String(threeDaysAgo.getMonth() + 1).padStart(2, '0')}-${String(threeDaysAgo.getDate()).padStart(2, '0')}`;
-      fireEvent.change(startDateInput, { target: { value: threeDaysAgoStr } });
-
-      // Set deadline to 2 days ago (which is after start date and within 7-day window)
-      const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
-      const twoDaysAgoStr = `${twoDaysAgo.getFullYear()}-${String(twoDaysAgo.getMonth() + 1).padStart(2, '0')}-${String(twoDaysAgo.getDate()).padStart(2, '0')}`;
-      const dueDateInput = screen.getByLabelText(/target due date \*/i);
-      fireEvent.change(dueDateInput, { target: { value: twoDaysAgoStr } });
 
       const saveBtn = screen.getByRole('button', { name: /^create task$/i });
       expect(saveBtn).not.toBeDisabled();
@@ -364,13 +357,17 @@ describe('Workspace Views and Modals', () => {
     it('blocks setting start date older than 7 days in the past and disables submit button', () => {
       const handleCreate = vi.fn();
 
-      render(<TaskCreateModal isOpen={true} onClose={vi.fn()} onCreateTask={handleCreate} />);
+      render(
+        <TaskCreateModal
+          isOpen={true}
+          onClose={vi.fn()}
+          onCreateTask={handleCreate}
+          initialStartDate="2020-01-01"
+        />
+      );
 
       const titleInput = screen.getByLabelText(/task title \*/i);
       fireEvent.change(titleInput, { target: { value: 'Very Old Started Task' } });
-
-      const startDateInput = screen.getByLabelText(/start date \(optional\)/i);
-      fireEvent.change(startDateInput, { target: { value: '2020-01-01' } });
 
       const saveBtn = screen.getByRole('button', { name: /^create task$/i });
       expect(saveBtn).toBeDisabled();
@@ -383,22 +380,26 @@ describe('Workspace Views and Modals', () => {
     it('blocks setting deadline date earlier than start date and disables submit button', () => {
       const handleCreate = vi.fn();
 
-      render(<TaskCreateModal isOpen={true} onClose={vi.fn()} onCreateTask={handleCreate} />);
-
-      const titleInput = screen.getByLabelText(/task title \*/i);
-      fireEvent.change(titleInput, { target: { value: 'Inverted Dates Task' } });
-
       // Start 2 days ago
       const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
       const twoDaysAgoStr = `${twoDaysAgo.getFullYear()}-${String(twoDaysAgo.getMonth() + 1).padStart(2, '0')}-${String(twoDaysAgo.getDate()).padStart(2, '0')}`;
-      const startDateInput = screen.getByLabelText(/start date \(optional\)/i);
-      fireEvent.change(startDateInput, { target: { value: twoDaysAgoStr } });
 
       // Deadline 3 days ago (earlier than start date)
       const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
       const threeDaysAgoStr = `${threeDaysAgo.getFullYear()}-${String(threeDaysAgo.getMonth() + 1).padStart(2, '0')}-${String(threeDaysAgo.getDate()).padStart(2, '0')}`;
-      const dueDateInput = screen.getByLabelText(/target due date \*/i);
-      fireEvent.change(dueDateInput, { target: { value: threeDaysAgoStr } });
+
+      render(
+        <TaskCreateModal
+          isOpen={true}
+          onClose={vi.fn()}
+          onCreateTask={handleCreate}
+          initialStartDate={twoDaysAgoStr}
+          initialDueDate={threeDaysAgoStr}
+        />
+      );
+
+      const titleInput = screen.getByLabelText(/task title \*/i);
+      fireEvent.change(titleInput, { target: { value: 'Inverted Dates Task' } });
 
       const saveBtn = screen.getByRole('button', { name: /^create task$/i });
       expect(saveBtn).toBeDisabled();
@@ -408,31 +409,43 @@ describe('Workspace Views and Modals', () => {
       expect(screen.getAllByText(/deadline date must be on or after start date/i).length).toBeGreaterThan(0);
     });
 
-    it('sets min attribute on date inputs to disallow dates older than 7 days ago and allows future start dates', () => {
+    it('disables dates older than 7 days in the custom date pickers', () => {
       render(<TaskCreateModal isOpen={true} onClose={vi.fn()} />);
 
-      const startDateInput = screen.getByLabelText(/start date \(optional\)/i);
-      expect(startDateInput).toHaveAttribute('min');
-      expect(startDateInput.getAttribute('min')).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-      expect(startDateInput).not.toHaveAttribute('max');
+      const startDateTrigger = screen.getByLabelText(/start date \(optional\)/i);
+      fireEvent.click(startDateTrigger);
 
-      const dateInput = screen.getByLabelText(/target due date \*/i);
-      expect(dateInput).toHaveAttribute('min');
-      expect(dateInput.getAttribute('min')).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      const oldDate = new Date();
+      oldDate.setDate(oldDate.getDate() - 8);
+      const oldLabel = oldDate.toLocaleDateString('en-GB', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+      const oldDay = screen.queryByRole('button', { name: new RegExp(oldLabel, 'i') });
+      if (oldDay) {
+        expect(oldDay).toBeDisabled();
+      }
+
+      const todayTrigger = screen.getByLabelText(/target due date \*/i);
+      expect(todayTrigger).toBeInTheDocument();
     });
 
     it('allows planning future tasks with start date beyond current date', () => {
       const handleCreate = vi.fn();
-      render(<TaskCreateModal isOpen={true} onClose={vi.fn()} onCreateTask={handleCreate} />);
+      render(
+        <TaskCreateModal
+          isOpen={true}
+          onClose={vi.fn()}
+          onCreateTask={handleCreate}
+          initialStartDate="2026-12-01"
+          initialDueDate="2026-12-05"
+        />
+      );
 
       const titleInput = screen.getByLabelText(/task title \*/i);
       fireEvent.change(titleInput, { target: { value: 'Future Planned Task' } });
-
-      const startDateInput = screen.getByLabelText(/start date \(optional\)/i);
-      fireEvent.change(startDateInput, { target: { value: '2026-12-01' } });
-
-      const dueDateInput = screen.getByLabelText(/target due date \*/i);
-      fireEvent.change(dueDateInput, { target: { value: '2026-12-05' } });
 
       const saveBtn = screen.getByRole('button', { name: /^create task$/i });
       expect(saveBtn).not.toBeDisabled();

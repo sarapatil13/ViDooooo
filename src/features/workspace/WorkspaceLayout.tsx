@@ -19,10 +19,6 @@ import { getFilteredTasks, buildHomeDashboard } from '../../data/taskFilters';
 import { getTodayDateString } from '../../utils/dateUtils';
 import { todayISO } from '../../data/calendar';
 
-const PREVIEW_NOW = (() => {
-  const [y, m, d] = BENCHMARK_DATE_STR.split('-').map(Number);
-  return new Date(y, m - 1, d, 12, 0);
-})();
 import { WorkspaceSidebar } from './WorkspaceSidebar';
 import { WorkspaceTopBar } from './WorkspaceTopBar';
 import { HomeView } from './views/HomeView';

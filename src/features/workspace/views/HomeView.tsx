@@ -5,8 +5,8 @@ import {
   getHomeDashboardTasks,
   HomeDashboardTasks,
 } from '../../../data/taskFilters';
-import { BENCHMARK_DATE_STR } from '../../../data/sampleTasks';
-import { getTodayDateString, formatTopBarDate } from '../../../utils/dateUtils';
+import { BENCHMARK_DATE_STR, BENCHMARK_DATE_TIME } from '../../../data/sampleTasks';
+import { formatTopBarDate } from '../../../utils/dateUtils';
 import { TaskRow } from '../TaskRow';
 import { Button } from '../../../components/ui';
 import { NextBestTaskCard } from '../NextBestTaskCard';
@@ -53,7 +53,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
   basePath = '/preview',
   user,
   tasks,
-  dashboard,
   initialTab = 'dashboard',
   initialStatus = 'today',
   onTaskClick,

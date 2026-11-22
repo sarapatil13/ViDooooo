@@ -9,7 +9,6 @@ import {
   getDefaultDueTime,
   validateChronologicalDeadline,
 } from '../../utils/dateUtils';
-import { toDateStr } from '../../data/taskDeadline';
 
 export interface TaskCreateModalProps {
   isOpen: boolean;
@@ -128,7 +127,7 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-[var(--surface)] border border-[var(--line)] rounded-2xl p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-lg bg-[var(--surface)] border border-[var(--line)] rounded-2xl p-6 shadow-2xl relative max-h-[85vh] overflow-y-auto overflow-x-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <button
