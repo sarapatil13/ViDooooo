@@ -10,6 +10,7 @@ export interface ListViewProps {
   tasks: SampleTask[];
   onTaskClick: (task: SampleTask) => void;
   onNewTaskClick?: () => void;
+  isPreview?: boolean;
 }
 
 export const ListView: React.FC<ListViewProps> = ({
@@ -18,6 +19,7 @@ export const ListView: React.FC<ListViewProps> = ({
   tasks,
   onTaskClick,
   onNewTaskClick,
+  isPreview = true,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
@@ -64,7 +66,7 @@ export const ListView: React.FC<ListViewProps> = ({
       {filteredTasks.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredTasks.map((task) => (
-            <TaskCard key={task.id} task={task} onClick={onTaskClick} />
+            <TaskCard key={task.id} task={task} onClick={onTaskClick} isPreview={isPreview} />
           ))}
         </div>
       ) : (

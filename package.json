@@ -5,14 +5,21 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:server": "npm --prefix server run start:dev",
+    "dev:all": "concurrently -n \"VITE,NEST\" -c \"cyan,magenta\" \"npm run dev\" \"npm run dev:server\"",
+    "build:server": "npm --prefix server run build",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "emulators": "firebase emulators:start --only auth"
+    "emulators": "firebase emulators:start --project demo-vido",
+    "emu": "firebase emulators:start --project demo-vido",
+    "emu:export": "firebase emulators:export ./firebase-export-local --project demo-vido",
+    "emu:import": "firebase emulators:start --import ./firebase-export-local --export-on-exit --project demo-vido"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.119.2",
     "firebase": "^13.4.0",
     "lucide-react": "^1.16.0",
     "react": "^19.0.0",
@@ -27,10 +34,16 @@
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.3.4",
-    "happy-dom": "^17.1.0",
+    "concurrently": "^10.0.7",
+    "happy-dom": "^21.0.4",
     "tailwindcss": "^4.0.0",
     "typescript": "~5.7.2",
     "vite": "^6.2.0",
     "vitest": "^3.0.5"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "^1.13.7",
+    "tinypool": "^2.1.2",
+    "@vitest/mocker": "^4.1.12"
   }
 }

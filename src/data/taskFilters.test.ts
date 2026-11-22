@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { SAMPLE_TASKS } from './sampleTasks';
-import { getFilteredTasks, getHomeDashboardTasks, HOME_LIMITS } from './taskFilters';
+import { SAMPLE_TASKS, SampleTask } from './sampleTasks';
+import {
+  getFilteredTasks,
+  getHomeDashboardTasks,
+  buildHomeDashboard,
+  HOME_LIMITS,
+} from './taskFilters';
 
 describe('taskFilters', () => {
   it('correctly categorizes tasks based on the benchmark date', () => {
@@ -57,6 +62,43 @@ describe('taskFilters', () => {
     const home = getHomeDashboardTasks([]);
     expect(home.recentlyCompleted.items.length).toBe(0);
     expect(home.recentlyCompleted.totalCount).toBe(0);
+  });
+
+  it('correctly categorizes tasks created for current today into today and not upcoming', () => {
+    const todayTask: SampleTask = {
+      id: 'task-real-today-1',
+      title: 'Current Date Real Task',
+      dueDate: '2026-11-22',
+      state: 'active',
+      category: 'work',
+      createdAt: '2026-11-22T08:00:00Z',
+    };
+
+    const futureTask: SampleTask = {
+      id: 'task-real-future-1',
+      title: 'Future Task Later',
+      dueDate: '2026-11-28',
+      state: 'active',
+      category: 'personal',
+      createdAt: '2026-11-22T08:00:00Z',
+    };
+
+    const all = [todayTask, futureTask, ...SAMPLE_TASKS];
+    const views = getFilteredTasks(all, '2026-11-17', '2026-11-17T09:00:00Z', '2026-11-22');
+
+    // Today task should be in today, NOT upcoming
+    expect(views.today.some((t) => t.id === 'task-real-today-1')).toBe(true);
+    expect(views.upcoming.some((t) => t.id === 'task-real-today-1')).toBe(false);
+
+    // Future task should be in upcoming, NOT today
+    expect(views.upcoming.some((t) => t.id === 'task-real-future-1')).toBe(true);
+    expect(views.today.some((t) => t.id === 'task-real-future-1')).toBe(false);
+
+    // Dashboard sections accurately reflect views
+    const home = buildHomeDashboard(views);
+    expect(home.today.items.some((t) => t.id === 'task-real-today-1')).toBe(true);
+    expect(home.upcoming.items.some((t) => t.id === 'task-real-today-1')).toBe(false);
+    expect(home.upcoming.items.some((t) => t.id === 'task-real-future-1')).toBe(true);
   });
 });
 

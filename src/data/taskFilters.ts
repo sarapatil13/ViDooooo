@@ -24,12 +24,13 @@ export const HOME_LIMITS = {
 } as const;
 
 /**
- * Filter tasks by view relative to deterministic benchmark date.
+ * Filter tasks by view relative to deterministic benchmark date and optional today date.
  */
 export function getFilteredTasks(
   tasks: SampleTask[],
   benchmarkDateStr: string = BENCHMARK_DATE_STR,
-  benchmarkDateTime: string = BENCHMARK_DATE_TIME
+  benchmarkDateTime: string = BENCHMARK_DATE_TIME,
+  currentDateStr?: string
 ): ViewFilteredTasks {
   const benchmarkTime = new Date(benchmarkDateTime).getTime();
   const sevenDaysAgoTime = benchmarkTime - 7 * 24 * 60 * 60 * 1000;
@@ -43,14 +44,26 @@ export function getFilteredTasks(
   // Completed tasks
   const completedTasks = nonArchived.filter((t) => t.state === 'completed');
 
-  // Today tasks: active and due on benchmark date
-  const today = activeTasks.filter((t) => t.dueDate === benchmarkDateStr);
+  // Today tasks: active and due on benchmark date or current today date
+  const today = activeTasks.filter(
+    (t) =>
+      t.dueDate === benchmarkDateStr ||
+      (Boolean(currentDateStr) && t.dueDate === currentDateStr)
+  );
 
-  // Needs attention: active and overdue (due date < benchmark date)
-  const needsAttention = activeTasks.filter((t) => t.dueDate < benchmarkDateStr);
+  // Needs attention: active and overdue (due date < benchmark date and not today)
+  const needsAttention = activeTasks.filter(
+    (t) =>
+      t.dueDate < benchmarkDateStr &&
+      (!currentDateStr || t.dueDate !== currentDateStr)
+  );
 
-  // Upcoming: active and due after benchmark date
-  const upcoming = activeTasks.filter((t) => t.dueDate > benchmarkDateStr);
+  // Upcoming: active and due after benchmark date and not today
+  const upcoming = activeTasks.filter(
+    (t) =>
+      t.dueDate > benchmarkDateStr &&
+      (!currentDateStr || t.dueDate !== currentDateStr)
+  );
 
   // Recently completed: completed within 7 days before benchmark date
   const recentlyCompleted = completedTasks.filter((t) => {
@@ -70,15 +83,9 @@ export function getFilteredTasks(
 }
 
 /**
- * Returns limited slices for the Home dashboard with total counts.
+ * Builds Home dashboard sections with limits from pre-filtered task sets.
  */
-export function getHomeDashboardTasks(
-  tasks: SampleTask[],
-  benchmarkDateStr: string = BENCHMARK_DATE_STR,
-  benchmarkDateTime: string = BENCHMARK_DATE_TIME
-): HomeDashboardTasks {
-  const filtered = getFilteredTasks(tasks, benchmarkDateStr, benchmarkDateTime);
-
+export function buildHomeDashboard(filtered: ViewFilteredTasks): HomeDashboardTasks {
   return {
     today: {
       items: filtered.today.slice(0, HOME_LIMITS.today),
@@ -101,5 +108,18 @@ export function getHomeDashboardTasks(
       limit: HOME_LIMITS.recentlyCompleted,
     },
   };
+}
+
+/**
+ * Returns limited slices for the Home dashboard with total counts.
+ */
+export function getHomeDashboardTasks(
+  tasks: SampleTask[],
+  benchmarkDateStr: string = BENCHMARK_DATE_STR,
+  benchmarkDateTime: string = BENCHMARK_DATE_TIME,
+  currentDateStr?: string
+): HomeDashboardTasks {
+  const filtered = getFilteredTasks(tasks, benchmarkDateStr, benchmarkDateTime, currentDateStr);
+  return buildHomeDashboard(filtered);
 }
 

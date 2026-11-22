@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ViDo — User & Product Guide</title>
+  <meta name="description" content="Visual walkthrough of ViDo's product philosophy, calm dashboard, task lifecycle, and team coordination.">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="top-nav">
+    <a href="./index.html" class="brand-wrapper">
+      <div class="brand-badge">V</div>
+      <div>
+        <span class="brand-title">ViDo</span>
+        <span class="brand-tag">User Guide</span>
+      </div>
+    </a>
+
+    <!-- Page Navigation Links -->
+    <div class="nav-controls">
+      <nav class="page-nav-pill-group" aria-label="Documentation Pages">
+        <a href="./index.html" class="page-nav-pill">Home</a>
+        <a href="./user.html" class="page-nav-pill active">👤 User Guide</a>
+        <a href="./developer.html" class="page-nav-pill">💻 Developer Guide</a>
+      </nav>
+
+      <!-- GitHub Link -->
+      <a href="https://github.com/vicharanashala/ViDo" target="_blank" rel="noopener noreferrer" class="icon-btn" title="ViDo GitHub Repository" aria-label="GitHub Repository">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <main class="page-container">
+
+    <!-- Hero Header -->
+    <section class="visual-hero" style="margin-bottom: 28px;">
+      <div class="kicker-pill">
+        <span>👤 User & Product Guide</span>
+      </div>
+      <h1>Designed for Calm Productivity</h1>
+      <p class="lead">
+        Learn how ViDo organizes your responsibilities without endless red lists, stress, or complexity.
+      </p>
+    </section>
+
+    <!-- 1. Life Contexts -->
+    <section style="margin-bottom: 40px;">
+      <h2 style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px;">1. Universal Life Contexts</h2>
+      <p style="color: var(--text-muted); margin-bottom: 16px;">
+        ViDo replaces office jargon with clean, universal terminology that works anywhere:
+      </p>
+
+      <div class="feature-grid-4">
+        <div class="v-card">
+          <div class="v-card-icon">🏠</div>
+          <h4>Personal & Household</h4>
+          <p>Medical checkups, vehicle maintenance, home repairs, and grocery routines tracked with calm accountability.</p>
+        </div>
+        <div class="v-card">
+          <div class="v-card-icon">🎓</div>
+          <h4>Students & Learning</h4>
+          <p>Semester coursework, exams, and thesis chapters broken down into measurable progress increments.</p>
+        </div>
+        <div class="v-card">
+          <div class="v-card-icon">💼</div>
+          <h4>Professionals & Freelancers</h4>
+          <p>Client deliverables, invoices, and project milestones with exact due times and timestamped notes.</p>
+        </div>
+        <div class="v-card">
+          <div class="v-card-icon">👥</div>
+          <h4>Teams & Workspaces</h4>
+          <p>Shared milestone roadmaps, explicit task assignees, and progress visibility without recurring status meetings.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Calm Dashboard -->
+    <section style="margin-bottom: 40px;">
+      <h2 style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px;">2. The Calm Dashboard</h2>
+      <p style="color: var(--text-muted); margin-bottom: 16px;">
+        Endless backlogs cause fatigue. ViDo intentionally caps the home dashboard:
+      </p>
+
+      <!-- 4 Visual Limit Chips -->
+      <div class="feature-grid-4" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
+        <div class="v-card" style="text-align: center; padding: 14px;">
+          <div style="font-size: 28px; font-weight: 900; color: var(--accent);">5</div>
+          <div style="font-size: 11px; font-weight: 800; text-transform: uppercase;">Today Max</div>
+        </div>
+        <div class="v-card" style="text-align: center; padding: 14px;">
+          <div style="font-size: 28px; font-weight: 900; color: var(--danger);">3</div>
+          <div style="font-size: 11px; font-weight: 800; text-transform: uppercase;">Attention Max</div>
+        </div>
+        <div class="v-card" style="text-align: center; padding: 14px;">
+          <div style="font-size: 28px; font-weight: 900; color: var(--warning);">3</div>
+          <div style="font-size: 11px; font-weight: 800; text-transform: uppercase;">Upcoming Max</div>
+        </div>
+        <div class="v-card" style="text-align: center; padding: 14px;">
+          <div style="font-size: 28px; font-weight: 900; color: var(--success);">3</div>
+          <div style="font-size: 11px; font-weight: 800; text-transform: uppercase;">Delivered Max</div>
+        </div>
+      </div>
+
+      <!-- Interactive Widget: Calm Dashboard Filter Simulation -->
+      <div class="interactive-widget" id="widgetDashboardLimiter">
+        <div class="widget-header">
+          <h4 class="widget-title">Interactive Demo: Calm Filter in Action</h4>
+          <span class="widget-badge">Interactive</span>
+        </div>
+        <div class="dashboard-limit-toggle">
+          <button class="toggle-pill-btn active" id="btnFilterCalm">ViDo Calm Mode (Capped)</button>
+          <button class="toggle-pill-btn" id="btnFilterAll">Uncurated Backlog (All 10 Tasks)</button>
+        </div>
+        <div class="task-preview-list" id="taskPreviewContainer">
+          <!-- Dynamically rendered via app.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Task Lifecycle -->
+    <section style="margin-bottom: 40px;">
+      <h2 style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px;">3. The Task Lifecycle</h2>
+      <p style="color: var(--text-muted); margin-bottom: 16px;">
+        Every task moves through a transparent 4-stage progression:
+      </p>
+
+      <div class="step-pipeline">
+        <div class="step-box">
+          <div class="step-num">1</div>
+          <h5>Create</h5>
+          <p>Clean modal form with exact deadline date & time.</p>
+        </div>
+        <div class="step-box">
+          <div class="step-num">2</div>
+          <h5>Progress</h5>
+          <p>Incremental slider moves smoothly from 0% to 99%.</p>
+        </div>
+        <div class="step-box">
+          <div class="step-num">3</div>
+          <h5>Checkpoints</h5>
+          <p>Timestamped notes record blockers and decisions.</p>
+        </div>
+        <div class="step-box">
+          <div class="step-num">4</div>
+          <h5>Complete</h5>
+          <p>Confirm at 100%, audit on-time delivery with quick Undo.</p>
+        </div>
+      </div>
+
+      <!-- Interactive Widget: Progress & Checkpoint Simulator -->
+      <div class="interactive-widget" id="widgetProgressSimulator">
+        <div class="widget-header">
+          <h4 class="widget-title">Interactive Demo: Progress & Checkpoint Simulator</h4>
+          <span class="widget-badge">Interactive</span>
+        </div>
+        <div class="slider-control">
+          <label>
+            <span>Drag slider to simulate updating a task:</span>
+            <span id="sliderPercentDisplay" style="color: var(--accent);">65% Progress</span>
+          </label>
+          <input type="range" id="progressRangeInput" min="0" max="100" value="65" aria-label="Progress slider">
+        </div>
+        <div class="checkpoint-timeline" id="checkpointTimelineDisplay">
+          <!-- Dynamically rendered via app.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Team Workspaces -->
+    <section style="margin-bottom: 40px;">
+      <h2 style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px;">4. Team Workspaces & Coordination</h2>
+      
+      <div class="feature-grid-2">
+        <div class="v-card">
+          <div class="v-card-icon">🎯</div>
+          <h4>Phased Milestones</h4>
+          <p>Group team responsibilities into delivery milestones (Phase 1 → Phase 2 → Alpha release) with targeted dates.</p>
+        </div>
+        <div class="v-card">
+          <div class="v-card-icon">🔔</div>
+          <h4>In-App Notifications</h4>
+          <p>Invited teammates receive an instant notification alert via the top utility bell icon with one-click Accept and Reject controls.</p>
+        </div>
+      </div>
+    </section>
+
+
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>

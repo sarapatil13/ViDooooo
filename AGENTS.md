@@ -24,9 +24,12 @@ You must strictly maintain the directory structure documented in `FOLDER_STRUCTU
 - **UI Primitives**: Place generic, domain-agnostic components (Buttons, Cards, Badges, Inputs, Modals) in `src/components/ui/` and export them in `src/components/ui/index.ts`. Never import domain models (`Task`, `Checkpoint`, `User`) into `src/components/ui/`.
 - **Feature Code**: Group product functionality into feature slices under `src/features/<feature-name>/`:
   - `src/features/landing/` — Public marketing page (`/`).
-  - `src/features/workspace/` — Authenticated dashboard preview (`/preview`).
+  - `src/features/auth/` — Auth session provider and sign-in/sign-out state (`AuthProvider`).
+  - `src/features/workspace/` — Dashboard shell shared by the live workspace (`/workspace`) and the demo (`/preview`).
   - `src/features/style-lab/` — Theme and palette lab (`/style-lab`).
 - **Data & Pure Logic**: Place data models, types, sample fixtures, and pure filtering/calculation functions in `src/data/`.
+- **Firebase & Persistence**: Keep Firebase initialization, auth helpers, and Firestore task/calendar/target reads and writes in `src/lib/` (never inside view components).
+- **Backend Service (`server/`)**: Place backend controllers, services, DTOs, and Prisma schemas inside `server/`.
 - **Tests**: Colocate tests alongside the files they verify (e.g., `TaskRow.tsx` -> `TaskRow.test.tsx` or `src/features/workspace/WorkspaceViewsAndModals.test.tsx`).
 - **Never create loose folders in the project root**: Root is strictly for configuration files and top-level documentation markdown.
 - **Never dump ad-hoc files in `src/`**: Only `App.tsx`, `main.tsx`, `index.css`, and `vite-env.d.ts` belong directly in `src/`.
@@ -36,7 +39,9 @@ You must strictly maintain the directory structure documented in `FOLDER_STRUCTU
 ## 3. Product Presentation Rules
 
 - **Product, Not a School Project**: ViDo is presented as a high-end, distraction-free SaaS product. **Never** include references to "Milestone 1", "Milestone 2", "Student Project", "Homework", or "Review Gates" in any user-facing UI text.
-- **Preview Route**: The dashboard demo is hosted at `/preview/*` with subroutes (`/preview/today`, `/preview/upcoming`, `/preview/needs-attention`, `/preview/completed`, `/preview/archived`).
+- **Preview Route**: The dashboard demo is hosted at `/preview/*` with subroutes (`/preview/today`, `/preview/upcoming`, `/preview/needs-attention`, `/preview/completed`, `/preview/archived`, `/preview/calendar`, `/preview/analytics`).
+- **Live Route**: `/workspace/*` mirrors those subroutes but requires sign-in and reads/writes Firestore through the local emulator. Demo components must accept `mode`/`basePath` so links never leak between the two shells.
+- **Planning Persistence**: Calendar events live at `users/{uid}/calendarEvents`, while weekly/monthly targets live on `users/{uid}`. Preview equivalents are stored in `localStorage`.
 - **Demo Banner & Exit Button**: The preview shell **must always** retain the persistent top demo preview banner with the **left-aligned** `Back to Landing Page` button.
 - **User Identity**: The default preview user profile is `"Demo User"`.
 - **Deterministic Fixtures**: All sample dates and timelines are anchored around **Tuesday, 17 November 2026**.
@@ -70,6 +75,7 @@ npm test
 # 3. Production Build: Must compile cleanly without errors
 npm run build
 ```
+(If the backend service is in scope for your change, also run `npm run build:server`.)
 
 ---
 

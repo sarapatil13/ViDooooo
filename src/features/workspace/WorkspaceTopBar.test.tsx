@@ -26,4 +26,59 @@ describe('WorkspaceTopBar', () => {
     fireEvent.focus(searchInput);
     expect(handleFocus).toHaveBeenCalledTimes(1);
   });
+
+  it('renders notification bell with pending team invitations and allows responding', () => {
+    const handleRespond = vi.fn().mockResolvedValue(undefined);
+    const mockInvites = [
+      {
+        id: 'invite-topbar-1',
+        teamId: 'team-topbar',
+        teamName: 'Beta Launch',
+        inviterId: 'lead-1',
+        inviterName: 'Sarah Chen',
+        inviterEmail: 'sarah@vido.app',
+        inviteeEmail: 'alex@vido.app',
+        status: 'pending' as const,
+        createdAt: '2026-11-18T10:00:00Z',
+      },
+    ];
+
+    render(
+      <MemoryRouter>
+        <WorkspaceTopBar
+          title="Team View"
+          invitations={mockInvites}
+          onRespondInvitation={handleRespond}
+        />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByRole('button', { name: /notifications: 1 pending/i })).toBeInTheDocument();
+    expect(screen.getByTestId('notification-badge')).toHaveTextContent('1');
+
+    fireEvent.click(screen.getByRole('button', { name: /notifications: 1 pending/i }));
+    expect(screen.getByText('Beta Launch')).toBeInTheDocument();
+  });
+
+  it('renders current date dynamically in top bar badge', () => {
+    render(
+      <MemoryRouter>
+        <WorkspaceTopBar title="Date Test" />
+      </MemoryRouter>
+    );
+
+    const dateBadge = screen.getByTestId('topbar-date');
+    expect(dateBadge).toBeInTheDocument();
+    expect(dateBadge.textContent).not.toBe('');
+  });
+
+  it('renders custom currentDate prop when provided', () => {
+    render(
+      <MemoryRouter>
+        <WorkspaceTopBar title="Date Test" currentDate="Friday, 25 Dec 2026" />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('Friday, 25 Dec 2026')).toBeInTheDocument();
+  });
 });

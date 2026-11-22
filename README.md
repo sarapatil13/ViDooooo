@@ -8,71 +8,54 @@ A modern task-management workspace built for focused individuals and transparent
 
 [![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev/)
 [![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
+[![NestJS](https://img.shields.io/badge/NestJS_11-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)](https://nestjs.com/)
+[![Prisma](https://img.shields.io/badge/Prisma_6-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Firebase](https://img.shields.io/badge/Firebase_Auth-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
-[![Vitest](https://img.shields.io/badge/Vitest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
-
-[Vision](./Idea.md) · [Living Concept](./concept.html) · [Folder Structure](./FOLDER_STRUCTURE.md) · [Agent Guidelines](./AGENTS.md) · [Contributing](./CONTRIBUTING.md) · [Testing Setup](#-firebase-testing-setup) · [Tech Stack](#-tech-stack) · [Quick Start](#-quick-start-for-developers)
+[![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
+[![Vitest](https://img.shields.io/badge/Vitest-729B1B?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
 
 </div>
 
 ---
 
-## 📌 Table of Contents
+## 💡 What is ViDo?
 
-- [📖 Overview & Philosophy](#-overview--philosophy)
-  - [Why ViDo?](#why-vido)
-  - [The Experience](#the-experience)
-- [🗺️ Application Routes](#️-application-routes)
-- [✨ Core Features](#-core-features)
-- [⚡ Quick Start for Developers](#-quick-start-for-developers)
-  - [Prerequisites](#prerequisites)
-  - [Installation & Running Locally](#installation--running-locally)
-- [🔐 Firebase Testing Setup](#-firebase-testing-setup)
-  - [Local Auth Emulator](#local-auth-emulator)
-  - [Interactive Sign-In Flow](#interactive-sign-in-flow)
-- [🧪 Verification & Scripts](#-verification--scripts)
-- [🗂️ Architecture & Code Organization](#️-architecture--code-organization)
-- [🎨 Design System & Theme Tokens](#-design-system--theme-tokens)
-- [🛠️ Tech Stack](#️-tech-stack)
-- [🤝 Contributing Guidelines](#-contributing-guidelines)
-- [💡 Core Principles](#-core-principles)
+ViDo is a **task-management workspace** designed to make work progress visible and verifiable without noise.
 
----
-
-## 📖 Overview & Philosophy
+Instead of relying on constant status meetings or ambiguous binary to-do lists, ViDo tracks **incremental checkpoints** and **timestamped progress**. It is built on the philosophy that tracking *what was done, when, and by whom* is fundamentally more valuable than simply knowing *if* a task is completed.
 
 ### Why ViDo?
 
-A simple checkbox tells you that something is done. It does not tell you **how the work is going**.
+- **Clarity over complexity**: A calm, focused interface that highlights what matters now.
+- **Progress visibility**: Update status continuously (e.g., 20%, 45%, 75%) rather than waiting for final completion.
+- **Accountability**: Lightweight checkpoint history that proves work without the burden of micro-reporting.
+- **Deadline awareness**: Unified views for what is due Today, Upcoming, or Needs Attention.
+- **Planning and analytics**: A planning calendar and completion analytics with editable weekly/monthly targets.
+- **Zero-friction local testing**: Full workspace behavior on the local Firebase emulator suite with no real credentials required.
 
-ViDo gives every responsibility a precise deadline, measurable progress percentage, a clear owner, and a chronological checkpoint history. Individuals stay focused in a calm, distraction-free environment while teams coordinate from a shared source of truth—without turning every status check into another meeting.
+> **MVP Status**: The application includes a fully functional public landing page, a shareable preview demo (`/preview`), live Firebase emulator authentication with per-user calendar/planning data, collaborative team workspaces, and a complete task/checkpoint lifecycle.
 
-> **ViDo turns “What is the status?” into a question the workspace already answers.**
+---
 
-### The Experience
+## 👥 Who ViDo is For
 
 <table>
 <tr>
 <td width="50%" valign="top">
 
-### 👤 Personal Responsibilities
+### 🧑‍💻 Individual Contributors
 
-A focused space for personal and household planning.
-
-- Organize individual responsibilities
-- Set exact dates and deadline times
-- Track progress incrementally from 0% to 100%
-- Maintain a chronological checkpoint update history
-- Automatically separate active, overdue, and completed work
+- Keep focused priorities in one place
+- Update progress incrementally as work advances
+- Never miss deadlines with timeline-based views
+- Track completion trends with weekly/monthly analytics
+- Build a verifiable record of work
 
 </td>
 <td width="50%" valign="top">
 
-### 👥 Shared Coordination
-
-A transparent space for collaborative execution.
+### 👔 Team Leaders & Managers
 
 - Organize focused workspaces
 - Clear assignment and ownership
@@ -88,56 +71,66 @@ A transparent space for collaborative execution.
 
 ## 🗺️ Application Routes
 
-ViDo offers a fully interactive client-side routing structure:
-
-| Route | View Name | Description |
-|---|---|---|
-| `/` | **Public Landing Page** | Universal value proposition, feature preview, design principles, and Google sign-in modal. |
-| `/workspace` | **Personal Workspace** | Authenticated task-management dashboard with user-scoped persistence, profile badge, and sign-out. |
-| `/preview` | **Interactive Product Demo** | Full guest demo using deterministic sample data (`Demo User`) with a persistent top navigation banner. |
-| `/preview/today` | **Today's Agenda** | Tasks scheduled specifically for the benchmark date. |
-| `/preview/upcoming` | **Upcoming Schedule** | Tasks scheduled for future dates. |
-| `/preview/needs-attention` | **Needs Attention** | Overdue or urgent tasks requiring immediate action. |
-| `/preview/completed` | **Completed Backlog** | Historical log of successfully delivered responsibilities. |
-| `/preview/archived` | **Archived Tasks** | Shelved responsibilities preserved with full checkpoint audit logs. |
-| `/style-lab` | **Design System Lab** | Interactive sandbox for testing accent palettes (`Cobalt Blue`, `Deep Indigo`, `Forest Green`). |
+| Route | Description |
+|---|---|
+| `/` | Public landing page with preview, design principles, and sign-in flow. |
+| `/workspace/*` | Authenticated workspace (Firebase Auth `:9099`, Firestore `:8080`, `demo-vido` project). |
+| `/preview/*` | Full guest demo with deterministic sample data and browser-local planning state. |
+| `/preview\|workspace/tasks` | Filterable task management view for active responsibilities. |
+| `/preview\|workspace/today`, `/upcoming`, `/needs-attention`, `/completed`, `/archived` | Section-specific task lists derived from shared filters. |
+| `/preview\|workspace/calendar` | Weekly/monthly planning calendar combining ViDo tasks and calendar events. |
+| `/preview\|workspace/analytics` | Completion analytics with editable weekly/monthly targets and cumulative progress. |
+| `/preview\|workspace/team/:teamId` | Shared team workspace with milestones, member roster, and collaborative task backlog (demo data in preview). |
+| `/workspace/team/:teamId` | Authenticated team workspace with lead permissions, member assignments, and progress tracking. |
+| `/style-lab` | Interactive sandbox for `Cobalt Blue`, `Deep Indigo`, and `Forest Green` accent palettes. |
 
 ---
 
 ## ✨ Core Features
 
 ### 🔐 Authentication & Session Management
-- **Google OAuth Integration**: Fast, popup-based single sign-on powered by Firebase Authentication.
-- **Local Testing via Auth Emulator**: Automated local emulator detection and startup on port `9099` with zero cloud credentials required.
-- **User-Scoped Task Storage**: Each authenticated user gets an isolated workspace backlog stored in browser local storage keyed to their unique User ID (`vido_tasks_<uid>`).
-- **Zero-Barrier Public Demo**: Guest users can inspect the complete interface via `/preview/*` without needing an account.
+- **Google sign-in (emulator)**: Popup-based sign-in powered by Firebase Authentication against the local Auth emulator.
+- **No real credentials required**: The default `demo-vido` project and emulator suite run entirely on your machine.
+- **Per-user planning data**: Calendar events and weekly/monthly targets are stored in Firestore under `users/{uid}` for signed-in users.
+- **Zero-barrier demo**: `/preview/*` is fully interactive without an account.
+
+### 👥 Team Workspaces & Shared Coordination
+- **Unified Sidebar Navigation**: Personal views (*Dashboard*, *Tasks*, *Calendar*, *Analytics*) alongside active collaborative spaces under `Teams & Shared Projects`.
+- **Email-Based Invitations**: Team Leads invite collaborators by Google email address with duplicate checking and case-insensitive matching.
+- **In-App Notification Center**: Top utility bar notification bell (`🔔`) alerts invited users in real-time, providing one-click **Accept** and **Reject** actions.
+- **Phased Milestone Roadmap**: Common project goals broken down into sequential delivery phases with target dates and status badges (`Completed`, `Active Phase`, `Upcoming`).
+- **Lead-Driven Permissions**: Team Leads administer team settings, milestones, and task assignments. Assignees maintain ownership over their progress (0–100%) and checkpoint logs. Tasks are read-only for non-assigned teammates.
 
 ### ✅ Task Lifecycle & Checkpoints
-- **Incremental Progress Tracking**: Measure progress continuously (0% to 100%) rather than relying on binary done/not-done toggles.
-- **Timestamped Checkpoints**: Preserve a living audit trail of status updates, blockers, and decisions for every responsibility.
-- **Automated Deadline Auditing**: Automatic detection for on-track, overdue, and late deliveries based on real-time date calculations.
+- **Incremental progress tracking**: Measure work continuously rather than relying on binary done/not-done toggles.
+- **Timestamped checkpoints**: Keep a chronological audit trail of updates for every responsibility.
+- **Deadline-aware views**: Shared filters power Today, Upcoming, Needs Attention, Completed, and Archived sections.
 
-### 🎯 Calm, Section-Limited Views
-- **Today's Agenda**: High-priority tasks scheduled for the active day.
-- **Needs Attention**: Overdue items or high-priority blockers surfaced prominently.
-- **Upcoming Schedule**: Future commitments organized by target date.
-- **Delivered & Archived**: Archived responsibilities preserved with complete historical integrity.
+### 🗓️ Planning Calendar
+- Unified **weekly** and **monthly** layouts showing ViDo tasks and calendar commitments together.
+- Create and manage planning calendar events alongside tasks in weekly and monthly views.
+- **Task ↔ event flows**: add a task to the calendar as a linked event, import an event as a task, or create/remove manual events.
+- Live events are stored at `users/{uid}/calendarEvents`; preview events are stored in `localStorage`.
+
+### 📊 Completion Analytics
+- Weekly completion percentage and progress against a user-set weekly target.
+- Monthly goal tracking with cumulative totals contributed by each week.
+- Editable targets persisted per user in Firestore (live) or in `localStorage` (preview), with progress bars and roll-up charts.
 
 ### 🎨 Living Design System
-- **Desktop-First & Contrast Compliant**: Built with crisp borders, generous whitespace, and WCAG AA contrast.
-- **CSS Custom Properties**: Dynamic theme token architecture supporting multiple palette accents (`Cobalt Blue`, `Deep Indigo`, `Forest Green`).
+- Desktop-first, contrast-compliant UI with semantic CSS custom properties.
+- Three live accent palettes in `/style-lab`.
 
 ---
 
 ## ⚡ Quick Start for Developers
 
-Get ViDo up and running on your local machine in under two minutes.
-
 ### Prerequisites
 
 - **Node.js 18+** (Node 20+ LTS recommended)
-- **npm** (comes with Node) or **pnpm**
-- *(Optional for Auth Emulator)*: **Java JRE 11+** installed (`java -version`) for running the Firebase Emulator Suite locally
+- **npm** (comes with Node)
+- **Java 11+** (required by the Firebase Emulator Suite) — verify with `java -version`
+- **Firebase CLI** (recommended): `npm install -g firebase-tools`
 
 ### Installation & Running Locally
 
@@ -147,67 +140,103 @@ Get ViDo up and running on your local machine in under two minutes.
    cd ViDo
    ```
 
-2. **Install project dependencies:**
+2. **Install dependencies:**
    ```bash
    npm install
    ```
 
-3. **Start the local development server:**
+3. **Start the local development environment:**
+   - **Full Stack (Frontend + NestJS Backend API)**:
+     ```bash
+     npm run dev:all
+     ```
+     *(Runs Vite on `http://localhost:5173` and NestJS on `http://localhost:3001` with SQLite `dev.db`)*
+   - **Frontend only**:
+     ```bash
+     npm run dev
+     ```
+     *(Runs Vite; in frontend-only mode team data can use the mock repository/dev bridge, and Firebase emulators may be auto-started when available.)*
+
+4. **(Optional) Start the full emulator suite manually in a separate terminal:**
    ```bash
-   npm run dev
+   npm run emu
    ```
 
-4. **Open your browser:**
+5. **Open the app:**
    Navigate to [http://localhost:5173](http://localhost:5173).
 
 > [!TIP]
-> When you run `npm run dev`, Vite will automatically check if the Firebase Auth Emulator is running on port `9099`. If not, it will check for Java and launch the emulator in the background automatically!
+> When you run `npm run dev` or `npm run dev:all`, Vite will attempt to start missing Firebase emulators when Java and the Firebase CLI are available.
 
 ---
 
-## 🔐 Firebase Testing Setup
+## 🔐 Firebase Emulator Setup
 
-ViDo is configured for **zero-friction local testing**. You do not need a Google Cloud account, a credit card, or live Firebase API keys to develop and test full authentication.
+ViDo is configured for **zero-friction local testing**. No Google Cloud account, credit card, or live Firebase credentials are required.
 
-### Local Auth Emulator
+- **Auth emulator**: `127.0.0.1:9099`
+- **Firestore emulator**: `127.0.0.1:8080`
+- **Emulator UI**: `127.0.0.1:4000` (when running `npm run emu` / `npm run emulators`)
+- **Project ID**: `demo-vido`
 
-- **Automatic Startup**: Running `npm run dev` automatically starts the Auth Emulator on `localhost:9099` with the demo project `demo-vido`.
-- **Manual Launch** (dedicated terminal):
-  ```bash
-  npm run emulators
-  ```
-  *(Equivalent to: `firebase emulators:start --only auth`)*
+Configuration lives in [`.env.example`](./.env.example), [`firebase.json`](./firebase.json), [`firestore.rules`](./firestore.rules), and [`firestore.indexes.json`](./firestore.indexes.json).
 
 ### Interactive Sign-In Flow
 
-1. Navigate to the landing page at `http://localhost:5173`.
-2. Click **Sign In to Dashboard** or **Continue with Google**.
-3. In the Firebase Auth Emulator popup:
-   - Choose any mock persona or enter a custom email/name.
-4. The application completes authentication and transitions into `/workspace`.
-5. Newly created tasks are automatically saved under your mock user's session key.
-6. Click **Sign Out** to terminate the session and return to the public landing page.
+1. Open `http://localhost:5173`.
+2. Click **Continue with Google** / **Sign In to Dashboard**.
+3. Choose any mock account in the Firebase Auth emulator popup.
+4. You are taken to `/workspace` with a per-user workspace.
+5. Use **Calendar** to add/import events and manage planning items; use **Analytics** to adjust weekly/monthly targets.
+6. Click **Sign Out** to return to the landing page.
+
+---
+
+## 👥 Collaborative Team Spaces & Multi-Backend Architecture
+
+ViDo supports multiple backend modes designed for zero-friction local testing as well as production scalability:
+
+### 1. Dedicated NestJS Backend with Prisma ORM & SSE (Recommended Local API)
+For full-stack developers who want a dedicated TypeScript API without any cloud dependency:
+- **Zero Cloud Setup**: Uses Prisma ORM with a local SQLite database (`server/prisma/dev.db`).
+- **Concurrent Startup**: Run `npm run dev:all` to launch the Vite frontend (:5173) and NestJS backend (:3001) together.
+- **Real-Time Push**: Server-Sent Events (SSE) broadcast team invitations and task updates in real-time across tabs and windows.
+- **Firebase AuthGuard**: Verifies Firebase ID tokens from both the local Firebase Emulator (`127.0.0.1:9099`) and live Firebase.
+- **Production Switching**: Seamlessly switches from SQLite to PostgreSQL by configuring `DATABASE_URL` in production.
+
+### 2. Offline Mock Repository & Vite Sync Bridge (Frontend-Only)
+When running frontend-only without the NestJS backend:
+- **Zero Configuration**: Uses `MockTeamRepository` with the Vite dev server SSE sync bridge.
+- **Preloaded Personas & Data**: Test immediately with preconfigured teams, phased milestones, and simulated invitations.
+
+### 3. Optional Production Supabase Integration
+For teams preferring a managed PostgreSQL BaaS:
+1. Create a Supabase project at [supabase.com](https://supabase.com).
+2. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env.local`.
+3. Restart Vite (`npm run dev`). ViDo's `getTeamRepository()` auto-detects credentials and connects to Supabase PostgreSQL and Realtime channels.
 
 ---
 
 ## 🧪 Verification & Scripts
 
-ViDo enforces high engineering standards. All pull requests and commits should pass all three core verification checks.
-
 | Command | Description |
 |---|---|
-| `npm run dev` | Starts the Vite dev server with automated Firebase Emulator orchestration. |
-| `npm test` | Runs the full Vitest suite (38 unit & integration tests across 10 test suites). |
-| `npm run test:watch` | Runs Vitest in interactive watch mode for active TDD development. |
-| `npm run typecheck` | Validates TypeScript types across the entire project with zero emit (`tsc -b --noEmit`). |
-| `npm run build` | Compiles an optimized, minified production build into `dist/`. |
+| `npm run dev:all` | Starts Vite frontend (:5173) and NestJS backend (:3001) concurrently. |
+| `npm run dev` | Starts the Vite dev server (and attempts to auto-start missing Firebase emulators when available). |
+| `npm run dev:server` | Starts the NestJS backend with live reload (`ts-node-dev`). |
+| `npm run build:server` | Compiles the NestJS backend into `server/dist/`. |
+| `npm test` | Runs the Vitest suite. |
+| `npm run test:watch` | Runs Vitest in interactive watch mode. |
+| `npm run typecheck` | Validates TypeScript types across the frontend (`tsc -b --noEmit`). |
+| `npm run build` | Compiles an optimized production frontend build into `dist/`. |
 | `npm run preview` | Locally previews the compiled production build from `dist/`. |
-| `npm run emulators` | Starts the standalone Firebase Auth Emulator on port 9099. |
+| `npm run emulators` / `npm run emu` | Starts the Firebase emulator suite for `demo-vido` (Auth + Firestore + UI). |
+| `npm run emu:export` | Exports emulator data to `./firebase-export-local`. |
+| `npm run emu:import` | Starts emulators importing/exporting local data. |
 
 ### Mandatory Pre-Commit Check
 
 ```bash
-# Run all three verification checks in one line
 npm run typecheck && npm test && npm run build
 ```
 
@@ -215,36 +244,35 @@ npm run typecheck && npm test && npm run build
 
 ## 🗂️ Architecture & Code Organization
 
-ViDo follows a **feature-driven, modular frontend architecture**. Code is grouped by user-facing domain responsibilities rather than arbitrary technical types.
+ViDo follows a **feature-driven, modular frontend architecture**. For the complete directory tree and placement rules, see **[FOLDER_STRUCTURE.md](./FOLDER_STRUCTURE.md)**.
 
-> For the complete, authoritative directory tree, placement rules, and anti-patterns, see **[FOLDER_STRUCTURE.md](./FOLDER_STRUCTURE.md)**.
+### Key Boundaries
 
-### Key Architectural Boundaries
-
-- **UI Primitives (`src/components/ui/`)**: Reusable, accessible, domain-agnostic components (`Button`, `Card`, `Badge`, `Input`, `NoticeModal`). They **never** import domain models (`Task`, `Checkpoint`, `User`).
-- **Feature Slices (`src/features/`)**: Self-contained vertical slices (`landing/`, `workspace/`, `style-lab/`, `auth/`) owning their views, subroutes, and feature-specific logic.
-- **Data & Pure Logic (`src/data/`)**: TypeScript interfaces, deterministic sample fixtures, and pure filtering/calculation functions.
-- **Colocated Tests**: Every component and utility has its tests colocated directly alongside its source file (e.g., `TaskRow.tsx` → `TaskRow.test.tsx`).
-- **Clean Root & Source Invariants**: The repository root is strictly reserved for configuration and documentation. Only `App.tsx`, `main.tsx`, `index.css`, and `vite-env.d.ts` reside directly in `src/`.
+- **UI Primitives (`src/components/ui/`)**: Reusable, accessible, domain-agnostic components (`Button`, `Card`, `Badge`, `Input`, `NoticeModal`). They never import domain models.
+- **Feature Slices (`src/features/`)**: Vertical slices for `landing/`, `auth/`, `workspace/`, `teams/`, and `style-lab/`.
+- **Data & Pure Logic (`src/data/`)**: Types, deterministic fixtures, filters, calendar helpers, and analytics calculations.
+- **Firebase & Persistence (`src/lib/`)**: Firebase/Firestore initialization, calendar event store, and planning-target settings store.
+- **Backend Service (`server/`)**: NestJS controllers, services, DTOs, and Prisma schemas for team/backend APIs.
+- **Colocated Tests**: Tests live alongside the code they verify.
 
 ---
 
 ## 🎨 Design System & Theme Tokens
 
-ViDo uses Tailwind CSS v4 with semantic CSS Custom Properties (`var(--token)`), ensuring consistent theming without hardcoded hex values:
+ViDo uses Tailwind CSS v4 with semantic CSS custom properties:
 
 | Token | CSS Variable | Purpose |
 |---|---|---|
-| **Canvas** | `var(--canvas)` | Main application and view background. |
-| **Surface** | `var(--surface)` | Card, panel, and modal containers. |
-| **Ink** | `var(--ink)` | High-contrast primary headings and text. |
-| **Muted** | `var(--muted)` | Secondary labels, timestamps, and metadata. |
-| **Faint** | `var(--faint)` | Placeholder text and disabled states. |
-| **Line** | `var(--line)` | Subtle borders, card strokes, and table dividers. |
-| **Accent** | `var(--accent)` | Primary brand color and active interactive states. |
-| **Accent Soft** | `var(--accent-soft)` | Subdued pill backgrounds and badge tints. |
+| Canvas | `var(--canvas)` | Main application background. |
+| Surface | `var(--surface)` | Card, panel, and modal containers. |
+| Ink | `var(--ink)` | Primary headings and text. |
+| Muted | `var(--muted)` | Secondary labels and metadata. |
+| Faint | `var(--faint)` | Placeholder/disabled states. |
+| Line | `var(--line)` | Borders and dividers. |
+| Accent | `var(--accent)` | Primary brand/active states. |
+| Accent Soft | `var(--accent-soft)` | Subdued tints and badges. |
 
-> Explore the accent palettes interactively at `/style-lab`.
+> Explore accent palettes interactively at `/style-lab`.
 
 ---
 
@@ -253,33 +281,30 @@ ViDo uses Tailwind CSS v4 with semantic CSS Custom Properties (`var(--token)`), 
 | Layer | Technology | Purpose |
 |---|---|---|
 | **Frontend Framework** | [React 19](https://react.dev/) | Declarative, component-based user interface. |
-| **Authentication** | [Firebase 13 (Auth)](https://firebase.google.com/) | Google OAuth integration with local emulator support. |
-| **Bundler & Tooling** | [Vite 6](https://vite.dev/) | Fast HMR dev server and optimized ESM builds. |
+| **Backend Framework** | [NestJS 11](https://nestjs.com/) | Dedicated TypeScript backend service (`server/`). |
+| **ORM & Database** | [Prisma 6](https://www.prisma.io/) + [SQLite](https://www.sqlite.org/) | Local database (`dev.db`) with PostgreSQL production compatibility. |
+| **Real-Time Push** | Server-Sent Events (SSE) | Push delivery for team invites and notification/task updates. |
+| **Auth & Data** | [Firebase 13](https://firebase.google.com/) | Google sign-in and Firestore-backed planning data (local emulator by default). |
+| **Bundler & Tooling** | [Vite 6](https://vite.dev/) | Fast HMR dev server and optimized builds. |
 | **Language** | [TypeScript 5.7](https://www.typescriptlang.org/) | Strict compile-time safety and self-documenting models. |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Modern utility-first styling with native CSS variables. |
+| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Utility-first styling with semantic CSS variables. |
 | **Routing** | [React Router 7](https://reactrouter.com/) | Declarative client-side routing with nested layouts. |
 | **Icons** | [Lucide React](https://lucide.dev/) | Clean, accessible iconography. |
-| **Testing** | [Vitest](https://vitest.dev/) + [Testing Library](https://testing-library.com/) | Rapid DOM tests running in Happy DOM. |
+| **Testing** | [Vitest](https://vitest.dev/) + [Testing Library](https://testing-library.com/) | Rapid DOM/unit/integration tests in Happy DOM. |
 
 ---
 
 ## 🤝 Contributing Guidelines
 
-We welcome community contributions! Please review our dedicated **[CONTRIBUTING.md](./CONTRIBUTING.md)** for our full contribution workflow, code conventions, and pull request checklist.
+Please review **[CONTRIBUTING.md](./CONTRIBUTING.md)** for the full workflow and PR checklist.
 
-### Contribution Overview:
-
-1. **Before You Code**:
-   - **Bug fixes**: Search [Existing Issues](https://github.com/vicharanashala/ViDo/issues) to avoid duplicate or conflicting efforts. Open a new issue if none exists.
-   - **UI redesigns & features**: Open a [GitHub Discussion](https://github.com/vicharanashala/ViDo/discussions) under the Ideas/UI category first to align with maintainers before writing code.
-2. **Fork & Branch**: Fork the repository, clone it locally, and create a topic branch (`git checkout -b feature/your-feature-name` or `fix/issue-number-description`).
-3. **Run Verifications**: Ensure all three checks pass before pushing:
+1. **Bug fixes**: search existing issues or open one with reproduction steps.
+2. **UI redesigns/features**: start a discussion first to align on scope and design.
+3. **Branch, implement, and verify**:
    ```bash
    npm run typecheck && npm test && npm run build
    ```
-4. **Submit Your PR**:
-   - For bug fixes: Link the issue in your PR description (`Fixes #<number>`).
-   - For UI changes & features: Include the **Discussion link**, **before/after screenshots**, and the **route/endpoint** changed.
+4. **Open a PR** with issue/discussion links and before/after evidence for UI changes.
 
 ---
 

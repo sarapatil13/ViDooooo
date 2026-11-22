@@ -1,18 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Filter, LogOut } from 'lucide-react';
 import { Badge } from '../../components/ui';
+import { NotificationBell } from '../teams/NotificationBell';
+import { getTeamRepository } from '../teams/teamRepository';
+import { TeamInvitation } from '../teams/types';
+import { formatTopBarDate } from '../../utils/dateUtils';
 
 export interface WorkspaceTopBarProps {
   title: string;
   subtitle?: string;
   isPreview?: boolean;
   user?: {
+    id?: string;
     name: string;
     email?: string;
   };
   authMode?: 'firebase' | 'emulator' | 'unconfigured';
   onSearchFocus?: () => void;
   onSignOut?: () => void;
+  invitations?: TeamInvitation[];
+  onRespondInvitation?: (invitationId: string, accept: boolean) => Promise<void>;
+  currentDate?: string;
 }
 
 export const WorkspaceTopBar: React.FC<WorkspaceTopBarProps> = ({
@@ -23,6 +31,9 @@ export const WorkspaceTopBar: React.FC<WorkspaceTopBarProps> = ({
   authMode,
   onSearchFocus,
   onSignOut,
+  invitations: propInvitations,
+  onRespondInvitation,
+  currentDate: propCurrentDate,
 }) => {
   const userName = isPreview ? 'Demo User' : user?.name || 'Alex Morgan';
   const userInitials = isPreview
@@ -36,6 +47,47 @@ export const WorkspaceTopBar: React.FC<WorkspaceTopBarProps> = ({
   const userSubtitle = isPreview
     ? 'Personal Workspace'
     : user?.email || 'alex.morgan@gmail.com';
+  const userEmail = isPreview ? 'demo@vido.app' : user?.email || 'alex.morgan@gmail.com';
+  const userId = isPreview ? 'demo-user-uid' : user?.id || 'alex-morgan-uid';
+
+  const [displayDate, setDisplayDate] = useState<string>(() => propCurrentDate ?? formatTopBarDate());
+
+  useEffect(() => {
+    if (propCurrentDate) {
+      setDisplayDate(propCurrentDate);
+      return;
+    }
+    const interval = setInterval(() => {
+      setDisplayDate(formatTopBarDate());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [propCurrentDate]);
+
+  const [internalInvitations, setInternalInvitations] = useState<TeamInvitation[]>([]);
+
+  useEffect(() => {
+    if (propInvitations !== undefined) return;
+    const repo = getTeamRepository();
+    const unsubscribe = repo.subscribeToInvitations(userEmail, (invites) => {
+      setInternalInvitations(invites);
+    });
+    return unsubscribe;
+  }, [userEmail, propInvitations]);
+
+  const activeInvitations = propInvitations ?? internalInvitations;
+
+  const handleRespond = async (invitationId: string, accept: boolean) => {
+    if (onRespondInvitation) {
+      await onRespondInvitation(invitationId, accept);
+      return;
+    }
+    const repo = getTeamRepository();
+    await repo.respondToInvitation(invitationId, accept, {
+      id: userId,
+      email: userEmail,
+      name: userName,
+    });
+  };
 
   return (
     <header className="sticky top-0 z-20 bg-[var(--surface)]/95 backdrop-blur-xs border-b border-[var(--line)] px-6 sm:px-8 py-3.5 flex items-center justify-between gap-4">
@@ -113,10 +165,16 @@ export const WorkspaceTopBar: React.FC<WorkspaceTopBarProps> = ({
 
         {/* Date Badge */}
         <div className="hidden lg:block">
-          <Badge variant="neutral" size="sm">
-            Tuesday, 17 Nov 2026
+          <Badge variant="neutral" size="sm" data-testid="topbar-date">
+            {displayDate}
           </Badge>
         </div>
+
+        {/* Notification Bell */}
+        <NotificationBell
+          invitations={activeInvitations}
+          onRespond={handleRespond}
+        />
 
         {/* User Profile Badge */}
         <div

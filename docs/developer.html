@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ViDo — Developer & Open Source Guide</title>
+  <meta name="description" content="Official engineering specifications, contribution rules, GitHub Discussions guidelines, PR checklist, and OpenSpec workflow for ViDo.">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="top-nav">
+    <a href="./index.html" class="brand-wrapper">
+      <div class="brand-badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">V</div>
+      <div>
+        <span class="brand-title">ViDo</span>
+        <span class="brand-tag" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">Dev Guide</span>
+      </div>
+    </a>
+
+    <!-- Page Navigation Links -->
+    <div class="nav-controls">
+      <nav class="page-nav-pill-group" aria-label="Documentation Pages">
+        <a href="./index.html" class="page-nav-pill">Home</a>
+        <a href="./user.html" class="page-nav-pill">👤 User Guide</a>
+        <a href="./developer.html" class="page-nav-pill active">💻 Developer Guide</a>
+      </nav>
+
+      <!-- GitHub Link -->
+      <a href="https://github.com/vicharanashala/ViDo" target="_blank" rel="noopener noreferrer" class="icon-btn" title="ViDo GitHub Repository" aria-label="GitHub Repository">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <main class="page-container">
+
+    <!-- Hero Header -->
+    <section class="visual-hero" style="margin-bottom: 24px;">
+      <div class="kicker-pill" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+        <span>💻 Developer & Contributor Hub</span>
+      </div>
+      <h1>Engineering, Contribution & OpenSpec</h1>
+      <p class="lead">
+        Architecture specifications, contribution guidelines, discussions forum alignment, and quality gate standards.
+      </p>
+    </section>
+
+    <!-- Interactive Topic Selector: Quick Jumper for Contribution Rules and Architecture -->
+    <section style="margin-bottom: 32px;">
+      <h3 style="font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-faint); margin-bottom: 10px;">
+        Quick Jump to Topic:
+      </h3>
+      <div class="dev-topic-selector" role="navigation" aria-label="Developer Topics">
+        <a href="#topic-discussions" class="topic-card-btn">
+          <span>💬</span>
+          <span>1. Discussions Forum Rules</span>
+        </a>
+        <a href="#topic-pr-rules" class="topic-card-btn">
+          <span>🌿</span>
+          <span>2. Pull Request (PR) Rules</span>
+        </a>
+        <a href="#topic-openspec" class="topic-card-btn">
+          <span>📋</span>
+          <span>3. OpenSpec Workflow</span>
+        </a>
+        <a href="#topic-architecture" class="topic-card-btn">
+          <span>🏗️</span>
+          <span>4. System Architecture</span>
+        </a>
+        <a href="#topic-boundaries" class="topic-card-btn">
+          <span>📁</span>
+          <span>5. Codebase Boundaries</span>
+        </a>
+        <a href="#topic-quality-gates" class="topic-card-btn">
+          <span>⚡</span>
+          <span>6. Testing & Quality Gates</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- 1. GitHub Discussions Forum Rules -->
+    <section id="topic-discussions" style="margin-bottom: 44px; scroll-margin-top: 84px;">
+      <h2 style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px;">1. GitHub Discussions Forum Rules</h2>
+      <p style="color: var(--text-muted); margin-bottom: 14px;">
+        ViDo maintains strict visual restraint. To prevent wasted effort on unaligned work, all UI changes must be discussed first:
+      </p>
+
+      <!-- Visual 4-Step Pipeline -->
+      <div class="step-pipeline" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 18px;">
+        <div class="step-box">
+          <div class="step-num">1</div>
+          <h5>Propose Idea</h5>
+          <p>Identify need or UX friction</p>
+        </div>
+        <div class="step-box" style="border-color: var(--accent); background: var(--accent-soft);">
+          <div class="step-num" style="background: var(--accent); color: #fff;">2</div>
+          <h5>Discussion</h5>
+          <p>Post in GitHub Discussions (Ideas / UI/UX)</p>
+        </div>
+        <div class="step-box">
+          <div class="step-num">3</div>
+          <h5>Maintainer Review</h5>
+          <p>Align on tokens, layout & scope</p>
+        </div>
+        <div class="step-box">
+          <div class="step-num">4</div>
+          <h5>Implement</h5>
+          <p>OpenSpec change & PR</p>
+        </div>
+      </div>
+
+      <div class="visual-alert danger">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-body">
+          <strong>Mandatory PR Requirement for Visual Work:</strong>
+          <p>Every PR touching UI must link to its approved GitHub Discussion in <strong>Ideas</strong> or <strong>UI/UX</strong> and attach before/after screenshots or screen recordings.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Pull Request (PR) Rules -->
+    <section id="topic-pr-rules" style="margin-bottom: 44px; scroll-margin-top: 84px;">
+      <h2 style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px;">2. Pull Request (PR) Guidelines & Checklist</h2>
+      
+      <div class="feature-grid-2">
+        <div class="v-card">
+          <h4>🌿 Branch Naming Conventions</h4>
+          <p style="font-size: 12px; margin-bottom: 6px;">Always branch off an updated <code>main</code> branch:</p>
+          <pre><code>git checkout -b feature/your-feature-name
+# or for bug fixes:
+git checkout -b fix/issue-12-task-due-date</code></pre>
+        </div>
+
+        <div class="v-card">
+          <h4>📝 Conventional Commit Standard</h4>
+          <p style="font-size: 12px; margin-bottom: 6px;">Use clear, atomic commit messages:</p>
+          <pre><code>feat: add real-time notification bell
+fix: resolve modal focus trap
+docs: update setup steps for Windows
+test: add unit tests for taskFilters</code></pre>
+        </div>
+      </div>
+
+      <div class="v-card" style="margin-top: 14px;">
+        <h4>PR Submission Checklist</h4>
+        <ul style="font-size: 13px; color: var(--text); padding-left: 20px; margin: 8px 0 0;">
+          <li>Target branch is clean and rebased on <code>main</code>.</li>
+          <li>Linked GitHub Issue (e.g. <code>Fixes #12</code>) or approved Discussion link attached.</li>
+          <li>All 3 verification gates pass (<code>typecheck</code>, <code>test</code>, <code>build</code>).</li>
+          <li>Zero secrets or <code>.env</code> files committed.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 3. OpenSpec Workflow for Major Changes -->
+    <section id="topic-openspec" style="margin-bottom: 44px; scroll-margin-top: 84px;">
+      <h2 style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px;">3. OpenSpec Workflow for Major Changes</h2>
+      
+      <div class="visual-alert" style="background: var(--purple-soft); border-left-color: var(--purple);">
+        <div class="alert-icon">📋</div>
+        <div class="alert-body">
+          <strong>Mandatory for Major Updates:</strong>
+          <p>To keep long-term delivery on track and prevent feature creep, <strong>any major capability, architectural change, or milestone task MUST use OpenSpec</strong> before writing code.</p>
+        </div>
+      </div>
+
+      <!-- OpenSpec 4-Step Pipeline -->
+      <div class="step-pipeline" style="grid-template-columns: repeat(4, 1fr); margin-top: 16px;">
+        <div class="step-box" style="border-top: 3px solid var(--purple);">
+          <div class="step-num" style="background: var(--purple-soft); color: var(--purple);">1</div>
+          <h5>Propose</h5>
+          <p><code>openspec propose</code>: Define why & what changes</p>
+        </div>
+        <div class="step-box" style="border-top: 3px solid var(--purple);">
+          <div class="step-num" style="background: var(--purple-soft); color: var(--purple);">2</div>
+          <h5>Specs</h5>
+          <p>Declare testable delta requirements</p>
+        </div>
+        <div class="step-box" style="border-top: 3px solid var(--purple);">
+          <div class="step-num" style="background: var(--purple-soft); color: var(--purple);">3</div>
+          <h5>Design</h5>
+          <p>Resolve technical decisions & trade-offs</p>
+        </div>
+        <div class="step-box" style="border-top: 3px solid var(--purple);">
+          <div class="step-num" style="background: var(--purple-soft); color: var(--purple);">4</div>
+          <h5>Apply</h5>
+          <p><code>openspec apply</code>: Execute verified checklist</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Full-Stack System Architecture -->
+    <section id="topic-architecture" style="margin-bottom: 44px; scroll-margin-top: 84px;">
+      <h2 style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px;">4. Full-Stack System Architecture</h2>
+      <p style="color: var(--text-muted); margin-bottom: 16px;">
+        ViDo is decoupled into an interactive React client and a high-performance NestJS microservice:
+      </p>
+
+      <div class="arch-stack">
+        <div class="arch-layer">
+          <div class="arch-layer-info">
+            <div class="arch-icon">🎨</div>
+            <div>
+              <strong>Client Layer (Frontend)</strong>
+              <span>Vite 6, React 19, TypeScript, Tailwind CSS v4</span>
+            </div>
+          </div>
+          <div class="arch-tech-tags">
+            <span class="tech-tag">React 19</span>
+            <span class="tech-tag">Tailwind v4</span>
+          </div>
+        </div>
+
+        <div class="arch-layer">
+          <div class="arch-layer-info">
+            <div class="arch-icon">⚡</div>
+            <div>
+              <strong>Real-Time Stream</strong>
+              <span>Server-Sent Events (SSE) for realtime task and invite push</span>
+            </div>
+          </div>
+          <div class="arch-tech-tags">
+            <span class="tech-tag">SSE</span>
+            <span class="tech-tag">Push Events</span>
+          </div>
+        </div>
+
+        <div class="arch-layer">
+          <div class="arch-layer-info">
+            <div class="arch-icon">⚙️</div>
+            <div>
+              <strong>Service Layer (Backend)</strong>
+              <span>NestJS 11 microservice, REST controllers, DTOs in <code>server/</code></span>
+            </div>
+          </div>
+          <div class="arch-tech-tags">
+            <span class="tech-tag">NestJS 11</span>
+            <span class="tech-tag">TypeScript</span>
+          </div>
+        </div>
+
+        <div class="arch-layer">
+          <div class="arch-layer-info">
+            <div class="arch-icon">🗄️</div>
+            <div>
+              <strong>Data Layer (ORM & DB)</strong>
+              <span>Prisma ORM 6 with local SQLite and PostgreSQL support</span>
+            </div>
+          </div>
+          <div class="arch-tech-tags">
+            <span class="tech-tag">Prisma 6</span>
+            <span class="tech-tag">SQLite / Postgres</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Codebase Boundaries & Tree Explorer -->
+    <section id="topic-boundaries" style="margin-bottom: 44px; scroll-margin-top: 84px;">
+      <h2 style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px;">5. Codebase Layout & Strict Invariants</h2>
+      <p style="color: var(--text-muted); margin-bottom: 16px;">
+        Strict adherence to <code>FOLDER_STRUCTURE.md</code> is mandatory:
+      </p>
+
+      <!-- Interactive Widget: Architecture Tree Explorer -->
+      <div class="interactive-widget" id="widgetTreeExplorer">
+        <div class="widget-header">
+          <h4 class="widget-title">Interactive Demo: Codebase Directory Explorer</h4>
+          <span class="widget-badge">Click Folders to Inspect Rules</span>
+        </div>
+        <div id="treeContainer">
+          <!-- Populated dynamically via app.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Testing & Quality Gates -->
+    <section id="topic-quality-gates" style="margin-bottom: 44px; scroll-margin-top: 84px;">
+      <h2 style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px;">6. Testing & Mandatory Quality Gates</h2>
+      
+      <div class="feature-grid-2">
+        <div class="v-card">
+          <div class="v-card-icon">⚡</div>
+          <h4>Firebase Auth Emulator (Port 9099)</h4>
+          <p>Zero cloud credentials required. Run local dev server with automatic emulator detection:</p>
+          <pre><code>npm run dev</code></pre>
+        </div>
+
+        <div class="v-card">
+          <div class="v-card-icon">🛡️</div>
+          <h4>Mandatory Verification Gates</h4>
+          <p>Must exit with 0 errors before submitting code:</p>
+          <pre><code>npm run typecheck
+npm test
+npm run build:server && npm run build</code></pre>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>

@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SampleTask, SAMPLE_TASKS } from '../../../data/sampleTasks';
-import { getHomeDashboardTasks, HomeDashboardTasks } from '../../../data/taskFilters';
+import {
+  getHomeDashboardTasks,
+  HomeDashboardTasks,
+} from '../../../data/taskFilters';
+import { BENCHMARK_DATE_STR } from '../../../data/sampleTasks';
+import { getTodayDateString, formatTopBarDate } from '../../../utils/dateUtils';
 import { TaskRow } from '../TaskRow';
 import { Button } from '../../../components/ui';
 import { NextBestTaskCard } from '../NextBestTaskCard';
@@ -9,7 +14,6 @@ import { WorkloadInsightCard } from '../WorkloadInsightCard';
 import { rankNextTasks } from '../../../data/taskRecommendations';
 import { toDateStr } from '../../../data/taskDeadline';
 import {
-  LayoutDashboard,
   CheckSquare,
   Clock,
   AlertCircle,
@@ -49,6 +53,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   basePath = '/preview',
   user,
   tasks,
+  dashboard,
   initialTab = 'dashboard',
   initialStatus = 'today',
   onTaskClick,
@@ -58,14 +63,15 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const navigate = useNavigate();
   const [currentNow, setCurrentNow] = useState<Date>(() => nowProp ?? new Date());
   const allTasks = tasks ?? SAMPLE_TASKS;
-  const benchmarkDateStr = toDateStr(currentNow);
-  const benchmarkDateTime = currentNow.toISOString();
-  const currentDashboard = getHomeDashboardTasks(allTasks, benchmarkDateStr, benchmarkDateTime);
-  const todayLabel = currentNow.toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
+  const benchmarkDateStr = isPreview ? BENCHMARK_DATE_STR : toDateStr(currentNow);
+  const benchmarkDateTime = isPreview ? BENCHMARK_DATE_TIME : currentNow.toISOString();
+  const todayStr = isPreview ? BENCHMARK_DATE_STR : toDateStr(currentNow);
+  const currentDashboard = getHomeDashboardTasks(
+    allTasks,
+    benchmarkDateStr,
+    benchmarkDateTime,
+    todayStr
+  );
 
   const [activeTab, setActiveTab] = useState<'dashboard' | 'tasks'>(initialTab);
   const [dashboardCategory, setDashboardCategory] = useState<
@@ -101,15 +107,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
     };
   }, [nowProp]);
 
-  const handleTabSwitch = (tab: 'dashboard' | 'tasks') => {
-    setActiveTab(tab);
-    try {
-      navigate(tab === 'tasks' ? `${basePath}/tasks` : `${basePath}`);
-    } catch {
-      // safe fallback if not wrapped in router
-    }
-  };
-
   // Status human-readable labels
   const statusLabels: Record<StatusFilter, string> = {
     all: 'All Active Tasks',
@@ -132,12 +129,17 @@ export const HomeView: React.FC<HomeViewProps> = ({
     if (task.state !== 'active' || task.isArchived) return false;
 
     // 1. Status Filter
+    const todayStr = toDateStr(currentNow);
+    const referenceDate = isPreview ? BENCHMARK_DATE_STR : todayStr;
     if (statusFilter === 'today') {
-      if (task.dueDate !== benchmarkDateStr) return false;
+      const isDueToday = task.dueDate === referenceDate || (isPreview && task.dueDate === todayStr);
+      if (!isDueToday) return false;
     } else if (statusFilter === 'needsAttention') {
-      if (task.dueDate >= benchmarkDateStr) return false;
+      const isOverdue = task.dueDate < referenceDate && (!isPreview || task.dueDate !== todayStr);
+      if (!isOverdue) return false;
     } else if (statusFilter === 'upcoming') {
-      if (task.dueDate <= benchmarkDateStr) return false;
+      const isUpcoming = task.dueDate > referenceDate && (!isPreview || task.dueDate !== todayStr);
+      if (!isUpcoming) return false;
     }
 
     // 2. Category Filter
@@ -157,7 +159,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const dashboardCategories = {
     today: {
       title: "Today's Agenda",
-      subtitle: `Tasks scheduled for today, ${todayLabel}`,
+      subtitle: isPreview
+        ? 'Tasks scheduled for today, 17 November 2026'
+        : `Tasks scheduled for today, ${formatTopBarDate()}`,
       items: currentDashboard.today.items,
       count: currentDashboard.today.totalCount,
       emptyText: 'No tasks due today. You are fully caught up.',
@@ -186,50 +190,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
   };
 
   const activeDashboardSection = dashboardCategories[dashboardCategory];
-  const activeTasksCount = allTasks.filter((t) => t.state === 'active').length;
 
   return (
     <div className="space-y-6 p-6 sm:p-8 max-w-6xl mx-auto">
-      {/* 1. Two Primary Tabs: Dashboard & Tasks */}
-      <div
-        role="tablist"
-        aria-label="Workspace views"
-        className="flex items-center gap-2 border-b border-[var(--line)] pb-3"
-      >
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'dashboard'}
-          onClick={() => handleTabSwitch('dashboard')}
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-            activeTab === 'dashboard'
-              ? 'bg-[var(--dark)] text-white shadow-sm'
-              : 'bg-[var(--surface)] border border-[var(--line)] text-[var(--muted)] hover:text-[var(--ink)]'
-          }`}
-        >
-          <LayoutDashboard className="w-3.5 h-3.5 text-[var(--accent)]" />
-          <span>Dashboard</span>
-        </button>
-
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeTab === 'tasks'}
-          onClick={() => handleTabSwitch('tasks')}
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-            activeTab === 'tasks'
-              ? 'bg-[var(--dark)] text-white shadow-sm'
-              : 'bg-[var(--surface)] border border-[var(--line)] text-[var(--muted)] hover:text-[var(--ink)]'
-          }`}
-        >
-          <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Tasks</span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/20 text-white font-mono">
-            {activeTasksCount}
-          </span>
-        </button>
-      </div>
-
       {/* ======================================================== */}
       {/* TAB 1: DASHBOARD VIEW                                   */}
       {/* ======================================================== */}
@@ -238,7 +201,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {(() => {
               const bestTask = rankNextTasks(allTasks, currentNow, 1)[0]?.task;
-              const showNextBest = !activeDashboardSection.items.some((task) => task.id === bestTask?.id);
+              const showNextBest = !currentDashboard.today.items.some((task) => task.id === bestTask?.id) &&
+                !currentDashboard.needsAttention.items.some((task) => task.id === bestTask?.id) &&
+                !currentDashboard.upcoming.items.some((task) => task.id === bestTask?.id);
               return showNextBest ? (
                 <NextBestTaskCard tasks={allTasks} now={currentNow} onTaskClick={onTaskClick} />
               ) : null;
@@ -439,11 +404,15 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   type="button"
                   onClick={() => {
                     setStatusFilter(dashboardCategory);
-                    handleTabSwitch('tasks');
+                    try {
+                      navigate(`${basePath}/tasks`);
+                    } catch {
+                      setActiveTab('tasks');
+                    }
                   }}
                   className="text-xs font-semibold text-[var(--accent)] hover:underline inline-flex items-center gap-1 cursor-pointer"
                 >
-                  Open in Tasks tab <ArrowRight className="w-3.5 h-3.5" />
+                  Open in Tasks view <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
@@ -457,6 +426,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     task={task}
                     onClick={onTaskClick}
                     onToggle={onToggleTask}
+                    isPreview={isPreview}
                   />
                 ))}
               </div>
@@ -705,6 +675,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     task={task}
                     onClick={onTaskClick}
                     onToggle={onToggleTask}
+                    isPreview={isPreview}
                   />
                 ))}
               </div>

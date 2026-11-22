@@ -160,4 +160,29 @@ describe('LandingPage Integration', () => {
     expect(screen.queryByText('Dashboard')).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /simple enough for anyone/i })).toBeInTheDocument();
   });
+
+  it('renders standalone not-found view when navigating to an unmapped root route', () => {
+    window.history.pushState({}, '', '/non-existent-page');
+    render(<App />);
+
+    expect(
+      screen.getByRole('heading', { name: /you've wandered off the scheduled horizon/i })
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('animated-character')).toBeInTheDocument();
+    // Top bar and sidebar are not present
+    expect(screen.queryByRole('navigation', { name: /workspace navigation/i })).not.toBeInTheDocument();
+  });
+
+  it('renders standalone not-found view when navigating to an unmapped workspace sub-endpoint', () => {
+    window.history.pushState({}, '', '/preview/tasks/wrong-sub-endpoint');
+    render(<App />);
+
+    expect(
+      screen.getByRole('heading', { name: /you've wandered off the scheduled horizon/i })
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('animated-character')).toBeInTheDocument();
+    // Top bar and sidebar are not present
+    expect(screen.queryByRole('navigation', { name: /workspace navigation/i })).not.toBeInTheDocument();
+    expect(screen.queryByText('DEMO PREVIEW')).not.toBeInTheDocument();
+  });
 });

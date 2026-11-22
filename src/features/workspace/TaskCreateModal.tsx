@@ -1,21 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Button, Input, DatePicker, TimePicker } from '../../components/ui';
 import { SampleTask } from '../../data/sampleTasks';
+import { X, Tag, CheckCircle2, AlertCircle } from 'lucide-react';
 import {
-  getEarliestDeadlineDate,
-  getMinDeadlineTime,
-  resolveDueTime,
-  toDateStr,
-  validateDeadline,
-} from '../../data/taskDeadline';
-import { X, Tag, CheckCircle2 } from 'lucide-react';
+  getTodayDateString,
+  getSevenDaysAgoDateString,
+  getCurrentTimeString,
+  getDefaultDueTime,
+  validateChronologicalDeadline,
+} from '../../utils/dateUtils';
+import { toDateStr } from '../../data/taskDeadline';
 
 export interface TaskCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateTask?: (task: SampleTask) => void;
-  /** Clock used for "today" and the creation time. Defaults to the real current time. */
+  /** Clock used for "today" and validation. Defaults to the real current time. */
   now?: Date;
+  initialStartDate?: string;
+  initialDueDate?: string;
+  initialDueTime?: string;
 }
 
 export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
@@ -23,17 +27,37 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
   onClose,
   onCreateTask,
   now: nowProp,
+  initialStartDate,
+  initialDueDate,
+  initialDueTime,
 }) => {
   const now = nowProp ?? new Date();
+  const todayStr = getTodayDateString(now);
+  const sevenDaysAgoStr = getSevenDaysAgoDateString(now);
+  const currentTimeStr = getCurrentTimeString(now);
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [dueDate, setDueDate] = useState(() => toDateStr(now));
-  const [dueTime, setDueTime] = useState('');
+  const [startDate, setStartDate] = useState(() => initialStartDate || '');
+  const [dueDate, setDueDate] = useState(() => initialDueDate || todayStr);
+  const [dueTime, setDueTime] = useState(() => initialDueTime ?? getDefaultDueTime());
   const [priority, setPriority] = useState<'high' | 'medium' | 'low' | ''>('medium');
   const [category, setCategory] = useState<'personal' | 'home' | 'work'>('personal');
   const [submittedNotice, setSubmittedNotice] = useState(false);
 
   const titleInputRef = useRef<HTMLInputElement>(null);
+
+  const validation = useMemo(() => {
+    return validateChronologicalDeadline({
+      startDate,
+      dueDate,
+      dueTime,
+      now,
+    });
+  }, [startDate, dueDate, dueTime, now]);
+
+  const isFormValid = Boolean(title.trim()) && validation.isValid;
+  const isSelectedDateToday = dueDate === todayStr;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -44,50 +68,39 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown);
       setSubmittedNotice(false);
+
+      if (!dueDate) {
+        setDueDate(todayStr);
+      }
       setTimeout(() => titleInputRef.current?.focus(), 50);
     }
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
-
-  // Start each session on today with no explicit time (defaults to end of day).
-  useEffect(() => {
-    if (isOpen) {
-      setDueDate(toDateStr(nowProp ?? new Date()));
-      setDueTime('');
-    }
-    // Only when the modal opens; later `now` ticks must not wipe the user's choices.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+  }, [isOpen, onClose, todayStr]);
 
   if (!isOpen) return null;
 
-  const deadline = validateDeadline({ dueDate, dueTime, now });
-  const minDate = getEarliestDeadlineDate(now);
-  const minTime = getMinDeadlineTime(dueDate, now);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) return;
-
-    // Re-check against the actual moment of submission.
-    const submittedAt = nowProp ?? new Date();
-    if (!validateDeadline({ dueDate, dueTime, now: submittedAt }).valid) return;
+    if (!title.trim() || !validation.isValid) return;
 
     const newTask: SampleTask = {
       id: `task-${Date.now()}`,
       title: title.trim(),
       description: description.trim() || undefined,
-      dueDate,
-      dueTime: resolveDueTime(dueTime),
+      startDate: startDate.trim() || undefined,
+      dueDate: validation.effectiveDueDate,
+      dueTime: validation.effectiveDueTime,
       priority: (priority as 'high' | 'medium' | 'low') || undefined,
       state: 'active',
       category,
-      createdAt: submittedAt.toISOString(),
+      createdAt: validation.effectiveCreatedAt,
       checkpoints: [
         {
           id: `cp-${Date.now()}`,
-          timestamp: submittedAt.toISOString(),
-          note: 'Task initialized in workspace.',
+          timestamp: validation.effectiveCreatedAt,
+          note: startDate.trim()
+            ? `Task initialized in workspace (started on ${startDate.trim()}).`
+            : 'Task initialized in workspace.',
         },
       ],
     };
@@ -95,15 +108,14 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
     setSubmittedNotice(true);
     onCreateTask?.(newTask);
 
-    // Reset inputs
     setTitle('');
     setDescription('');
-    setDueDate(toDateStr(submittedAt));
-    setDueTime('');
+    setStartDate('');
+    setDueDate(todayStr);
+    setDueTime(getDefaultDueTime());
     setPriority('medium');
     setCategory('personal');
 
-    // Close the popup so it does not remain stuck open
     onClose();
   };
 
@@ -131,7 +143,7 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
           Create New Task
         </h2>
         <p className="text-xs text-[var(--muted)] mt-1 mb-5">
-          Define exact deadlines and ownership for your next responsibility.
+          Define exact deadlines and chronological ownership for your next responsibility.
         </p>
 
         {submittedNotice && (
@@ -140,6 +152,19 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
             <p className="text-xs font-semibold leading-relaxed">
               Task successfully saved to your workspace.
             </p>
+          </div>
+        )}
+
+        {validation.generalError && (
+          <div
+            role="alert"
+            className="mb-5 p-3.5 rounded-xl bg-[var(--red-soft)] border border-[var(--red)]/30 text-xs text-[var(--red)] flex items-start gap-2.5 animate-in fade-in duration-150"
+          >
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold">Invalid Chronological Combination</p>
+              <p className="mt-0.5 text-[11px] leading-relaxed opacity-90">{validation.generalError}</p>
+            </div>
           </div>
         )}
 
@@ -168,23 +193,39 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <DatePicker
+              label="Start Date (Optional)"
+              value={startDate}
+              onChange={setStartDate}
+              min={sevenDaysAgoStr}
+              today={todayStr}
+              error={validation.startError}
+              helperText="Defaults to today if omitted (max 7 days in past)"
+            />
+
+            <DatePicker
               label="Target Due Date *"
               required
               value={dueDate}
               onChange={setDueDate}
-              min={minDate}
-              today={toDateStr(now)}
-              error={deadline.code === 'date-too-old' ? deadline.message : undefined}
+              min={startDate || sevenDaysAgoStr}
+              today={todayStr}
+              error={validation.dateError}
               helperText="Up to 7 days back, for work already started"
             />
+          </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <TimePicker
               label="Due Time (Optional)"
               value={dueTime}
               onChange={setDueTime}
-              minTime={minTime}
-              error={deadline.code === 'time-not-later' ? deadline.message : undefined}
-              helperText="Defaults to 23:59 if omitted"
+              minTime={isSelectedDateToday && !startDate ? currentTimeStr : undefined}
+              error={validation.timeError}
+              helperText={
+                isSelectedDateToday && !startDate
+                  ? `Must be after ${currentTimeStr} (defaults to 11:59 PM if omitted)`
+                  : 'Defaults to 11:59 PM if omitted'
+              }
             />
           </div>
 
@@ -225,8 +266,14 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
             <Button type="button" variant="secondary" size="sm" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" variant="primary" size="sm">
-              Save Task
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              disabled={!isFormValid}
+              aria-label="Create Task"
+            >
+              Create Task
             </Button>
           </div>
         </form>
