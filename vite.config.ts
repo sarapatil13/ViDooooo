@@ -1,4 +1,4 @@
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import net from 'node:net';
@@ -27,8 +27,16 @@ function checkPort(port: number, host = '127.0.0.1', timeout = 600): Promise<boo
   });
 }
 
-function firebaseEmulatorPlugin(): Plugin {
+function firebaseEmulatorPlugin(env: Record<string, string>): Plugin {
   let emulatorProcess: ChildProcess | null = null;
+
+  const apiKey = env.VITE_FIREBASE_API_KEY?.trim() ?? '';
+  const projectId = env.VITE_FIREBASE_PROJECT_ID?.trim() ?? '';
+  const isConfigured = Boolean(apiKey && projectId);
+  const wantsEmulator =
+    env.VITE_USE_FIREBASE_EMULATOR === 'true' ||
+    (projectId !== '' && projectId.startsWith('demo-')) ||
+    (!isConfigured && env.PROD !== 'true');
 
   return {
     name: 'firebase-emulators',
@@ -36,6 +44,13 @@ function firebaseEmulatorPlugin(): Plugin {
     async configureServer(server) {
       const authPort = 9099;
       const firestorePort = 8080;
+
+      if (!wantsEmulator) {
+        console.log(
+          `\n\x1b[32m[ViDo Auth]\x1b[0m Using live Firebase configuration; skipping Auth Emulator auto-start.\n`
+        );
+        return;
+      }
       const [authRunning, firestoreRunning] = await Promise.all([
         checkPort(authPort),
         checkPort(firestorePort),
@@ -120,7 +135,7 @@ function firebaseEmulatorPlugin(): Plugin {
         ]);
         if (ready.every(Boolean)) {
           console.log(
-            `\n\x1b[32m[ViDo Emulators]\x1b[0m ✓ Auth :${authPort} and Firestore :${firestorePort} are ready.\n`
+            `\n\x1b[32m[ViDo Emulators]\x1b[0m G�� Auth :${authPort} and Firestore :${firestorePort} are ready.\n`
           );
           break;
         }
@@ -395,8 +410,10 @@ function localTeamSyncPlugin(): Plugin {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss(), firebaseEmulatorPlugin(), localTeamSyncPlugin()],
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  return {
+    plugins: [react(), tailwindcss(), firebaseEmulatorPlugin(env), localTeamSyncPlugin()],
   server: {
     proxy: {
       '/api': {
@@ -411,4 +428,6 @@ export default defineConfig({
       },
     },
   },
+  };
 });
+
