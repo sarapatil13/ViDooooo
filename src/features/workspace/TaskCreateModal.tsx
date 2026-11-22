@@ -26,7 +26,6 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
   onClose,
   onCreateTask,
   now: nowProp,
-  initialStartDate,
   initialDueDate,
   initialDueTime,
 }) => {
@@ -37,7 +36,6 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [startDate, setStartDate] = useState(() => initialStartDate || '');
   const [dueDate, setDueDate] = useState(() => initialDueDate || todayStr);
   const [dueTime, setDueTime] = useState(() => initialDueTime ?? getDefaultDueTime());
   const [priority, setPriority] = useState<'high' | 'medium' | 'low' | ''>('medium');
@@ -48,12 +46,11 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
 
   const validation = useMemo(() => {
     return validateChronologicalDeadline({
-      startDate,
       dueDate,
       dueTime,
       now,
     });
-  }, [startDate, dueDate, dueTime, now]);
+  }, [dueDate, dueTime, now]);
 
   const isFormValid = Boolean(title.trim()) && validation.isValid;
   const isSelectedDateToday = dueDate === todayStr;
@@ -86,7 +83,6 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
       id: `task-${Date.now()}`,
       title: title.trim(),
       description: description.trim() || undefined,
-      startDate: startDate.trim() || undefined,
       dueDate: validation.effectiveDueDate,
       dueTime: validation.effectiveDueTime,
       priority: (priority as 'high' | 'medium' | 'low') || undefined,
@@ -97,9 +93,7 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
         {
           id: `cp-${Date.now()}`,
           timestamp: validation.effectiveCreatedAt,
-          note: startDate.trim()
-            ? `Task initialized in workspace (started on ${startDate.trim()}).`
-            : 'Task initialized in workspace.',
+          note: 'Task initialized in workspace.',
         },
       ],
     };
@@ -109,7 +103,6 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
 
     setTitle('');
     setDescription('');
-    setStartDate('');
     setDueDate(todayStr);
     setDueTime(getDefaultDueTime());
     setPriority('medium');
@@ -127,7 +120,7 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-[var(--surface)] border border-[var(--line)] rounded-2xl p-6 shadow-2xl relative max-h-[85vh] overflow-y-auto overflow-x-hidden"
+        className="w-full max-w-lg bg-[var(--surface)] border border-[var(--line)] rounded-2xl p-6 shadow-2xl relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -192,36 +185,24 @@ export const TaskCreateModal: React.FC<TaskCreateModalProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <DatePicker
-              label="Start Date (Optional)"
-              value={startDate}
-              onChange={setStartDate}
-              min={sevenDaysAgoStr}
-              today={todayStr}
-              error={validation.startError}
-              helperText="Defaults to today if omitted (max 7 days in past)"
-            />
-
-            <DatePicker
               label="Target Due Date *"
               required
               value={dueDate}
               onChange={setDueDate}
-              min={startDate || sevenDaysAgoStr}
+              min={sevenDaysAgoStr}
               today={todayStr}
               error={validation.dateError}
               helperText="Up to 7 days back, for work already started"
             />
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <TimePicker
               label="Due Time (Optional)"
               value={dueTime}
               onChange={setDueTime}
-              minTime={isSelectedDateToday && !startDate ? currentTimeStr : undefined}
+              minTime={isSelectedDateToday ? currentTimeStr : undefined}
               error={validation.timeError}
               helperText={
-                isSelectedDateToday && !startDate
+                isSelectedDateToday
                   ? `Must be after ${currentTimeStr} (defaults to 11:59 PM if omitted)`
                   : 'Defaults to 11:59 PM if omitted'
               }

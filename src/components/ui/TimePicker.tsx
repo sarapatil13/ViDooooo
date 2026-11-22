@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Clock } from 'lucide-react';
 
 const pad = (n: number): string => String(n).padStart(2, '0');
@@ -65,19 +66,57 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   const [mode, setMode] = useState<Mode>('hour');
   const [period, setPeriod] = useState<Period>('AM');
 
-  const wrapperRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const dialRef = useRef<HTMLDivElement>(null);
   const focusDialRef = useRef(false);
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
 
   const periodDisabled = (p: Period): boolean => (p === 'AM' ? 12 * 60 - 1 : 24 * 60 - 1) < minMinutes;
+
+  const updatePosition = () => {
+    const trigger = triggerRef.current?.getBoundingClientRect();
+    if (!trigger) return;
+    const modal = triggerRef.current?.closest('[role="dialog"][aria-modal="true"]') as HTMLElement | null;
+    const container = modal?.getBoundingClientRect() ?? {
+      left: 0,
+      top: 0,
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+    const popover = popoverRef.current?.getBoundingClientRect();
+    const margin = 8;
+    const estimatedWidth = popover?.width ?? 248;
+    const estimatedHeight = popover?.height ?? 360;
+    let left = container.left + container.width / 2 - estimatedWidth / 2;
+    let top = container.top + container.height / 2 - estimatedHeight / 2;
+    if (popover) {
+      if (left + popover.width > window.innerWidth - margin) left = window.innerWidth - popover.width - margin;
+      if (left < margin) left = margin;
+      if (top + popover.height > window.innerHeight - margin) top = window.innerHeight - popover.height - margin;
+      if (top < margin) top = margin;
+    }
+    setCoords({ top, left });
+  };
 
   const openPopover = () => {
     const initial: Period = hasValue ? (valueH24 >= 12 ? 'PM' : 'AM') : periodDisabled('AM') ? 'PM' : 'AM';
     setPeriod(initial);
     setMode('hour');
     focusDialRef.current = true;
+    const modal = triggerRef.current?.closest('[role="dialog"][aria-modal="true"]') as HTMLElement | null;
+    const container = modal?.getBoundingClientRect() ?? {
+      left: 0,
+      top: 0,
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+    setCoords({
+      top: container.top + container.height / 2 - 180,
+      left: container.left + container.width / 2 - 124,
+    });
     setOpen(true);
+    window.dispatchEvent(new CustomEvent('vido:picker-open', { detail: generatedId }));
   };
 
   const closePopover = (returnFocus: boolean) => {
@@ -89,13 +128,37 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const target = e.target as Node;
+      if (triggerRef.current?.contains(target)) return;
+      if (popoverRef.current?.contains(target)) return;
+      setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    updatePosition();
+    const handleUpdate = () => updatePosition();
+    window.addEventListener('resize', handleUpdate);
+    window.addEventListener('scroll', handleUpdate, true);
+    return () => {
+      window.removeEventListener('resize', handleUpdate);
+      window.removeEventListener('scroll', handleUpdate, true);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<string>).detail;
+      if (detail && detail !== generatedId && open) {
+        setOpen(false);
+      }
+    };
+    window.addEventListener('vido:picker-open', handler);
+    return () => window.removeEventListener('vido:picker-open', handler);
+  }, [open, generatedId]);
 
   // Move DOM focus into the dial when opening or switching hour/minute.
   useEffect(() => {
@@ -206,7 +269,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
     'px-2.5 py-1 rounded-lg text-xs font-semibold border border-[var(--line)] text-[var(--ink)] hover:bg-[var(--canvas)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent';
 
   return (
-    <div className="w-full relative" ref={wrapperRef}>
+    <div className="w-full relative">
       {label && (
         <label htmlFor={triggerId} className="block text-xs font-semibold text-[var(--muted)] mb-1.5">
           {label}
@@ -231,13 +294,15 @@ export const TimePicker: React.FC<TimePickerProps> = ({
         <Clock className="w-4 h-4 text-[var(--muted)] shrink-0" aria-hidden="true" />
       </button>
 
-      {open && (
+      {open && coords ? createPortal(
         <div
+          ref={popoverRef}
           role="dialog"
           aria-label={label ? `Choose ${label.replace(/\s*\(optional\)\s*$/i, '').toLowerCase()}` : 'Choose time'}
           tabIndex={-1}
           onKeyDown={handlePopoverKeyDown}
-          className="absolute left-0 top-full mt-1.5 z-20 w-[15.5rem] p-3 bg-[var(--surface)] border border-[var(--line)] rounded-xl shadow-lg"
+          style={{ position: 'fixed', top: coords.top, left: coords.left, zIndex: 1000 }}
+          className="w-[15.5rem] p-3 bg-[var(--surface)] border border-[var(--line)] rounded-xl shadow-lg"
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-0.5">
@@ -369,7 +434,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
             </button>
           </div>
         </div>
-      )}
+      , document.body) : null}
 
       {error ? (
         <p id={noteId} role="status" className="mt-1 text-xs text-[var(--amber)]">

@@ -1,4 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 
 /* ---------- Local calendar-date helpers (YYYY-MM-DD, no time zones) ---------- */
@@ -99,10 +100,36 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   });
   const [focusDate, setFocusDate] = useState(() => clamp(value || todayStr));
 
-  const wrapperRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const focusGridRef = useRef(false);
+  const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
+
+  const updatePosition = () => {
+    const trigger = triggerRef.current?.getBoundingClientRect();
+    if (!trigger) return;
+    const modal = triggerRef.current?.closest('[role="dialog"][aria-modal="true"]') as HTMLElement | null;
+    const container = modal?.getBoundingClientRect() ?? {
+      left: 0,
+      top: 0,
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+    const popover = popoverRef.current?.getBoundingClientRect();
+    const margin = 8;
+    const estimatedWidth = popover?.width ?? 296;
+    const estimatedHeight = popover?.height ?? 320;
+    let left = container.left + container.width / 2 - estimatedWidth / 2;
+    let top = container.top + container.height / 2 - estimatedHeight / 2;
+    if (popover) {
+      if (left + popover.width > window.innerWidth - margin) left = window.innerWidth - popover.width - margin;
+      if (left < margin) left = margin;
+      if (top + popover.height > window.innerHeight - margin) top = window.innerHeight - popover.height - margin;
+      if (top < margin) top = margin;
+    }
+    setCoords({ top, left });
+  };
 
   const openPopover = () => {
     const start = clamp(value || todayStr);
@@ -110,7 +137,19 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     setView({ year: d.getFullYear(), month: d.getMonth() });
     setFocusDate(start);
     focusGridRef.current = true;
+    const modal = triggerRef.current?.closest('[role="dialog"][aria-modal="true"]') as HTMLElement | null;
+    const container = modal?.getBoundingClientRect() ?? {
+      left: 0,
+      top: 0,
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+    setCoords({
+      top: container.top + container.height / 2 - 160,
+      left: container.left + container.width / 2 - 148,
+    });
     setOpen(true);
+    window.dispatchEvent(new CustomEvent('vido:picker-open', { detail: generatedId }));
   };
 
   const closePopover = (returnFocus: boolean) => {
@@ -122,13 +161,37 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const target = e.target as Node;
+      if (triggerRef.current?.contains(target)) return;
+      if (popoverRef.current?.contains(target)) return;
+      setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    updatePosition();
+    const handleUpdate = () => updatePosition();
+    window.addEventListener('resize', handleUpdate);
+    window.addEventListener('scroll', handleUpdate, true);
+    return () => {
+      window.removeEventListener('resize', handleUpdate);
+      window.removeEventListener('scroll', handleUpdate, true);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<string>).detail;
+      if (detail && detail !== generatedId && open) {
+        setOpen(false);
+      }
+    };
+    window.addEventListener('vido:picker-open', handler);
+    return () => window.removeEventListener('vido:picker-open', handler);
+  }, [open, generatedId]);
 
   // Move DOM focus to the active day after keyboard navigation / opening.
   useEffect(() => {
@@ -220,7 +283,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   const describedBy = error || helperText ? noteId : undefined;
 
   return (
-    <div className="w-full relative" ref={wrapperRef}>
+    <div className="w-full relative">
       {label && (
         <label htmlFor={triggerId} className="block text-xs font-semibold text-[var(--muted)] mb-1.5">
           {label}
@@ -246,13 +309,15 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         <Calendar className="w-4 h-4 text-[var(--muted)] shrink-0" aria-hidden="true" />
       </button>
 
-      {open && (
+      {open && coords ? createPortal(
         <div
+          ref={popoverRef}
           role="dialog"
           aria-label={label ? `Choose ${label.replace(/\s*\*$/, '').toLowerCase()}` : 'Choose date'}
           tabIndex={-1}
           onKeyDown={handlePopoverKeyDown}
-          className="absolute left-0 top-full mt-1.5 z-20 w-[18.5rem] p-3 bg-[var(--surface)] border border-[var(--line)] rounded-xl shadow-lg"
+          style={{ position: 'fixed', top: coords.top, left: coords.left, zIndex: 1000 }}
+          className="w-[18.5rem] p-3 bg-[var(--surface)] border border-[var(--line)] rounded-xl shadow-lg"
         >
           <div className="flex items-center justify-between mb-2">
             <button
@@ -334,7 +399,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
             ))}
           </div>
         </div>
-      )}
+      , document.body) : null}
 
       {error ? (
         <p id={noteId} role="status" className="mt-1 text-xs text-[var(--amber)]">
