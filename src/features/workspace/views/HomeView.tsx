@@ -10,7 +10,6 @@ import { formatTopBarDate } from '../../../utils/dateUtils';
 import { TaskRow } from '../TaskRow';
 import { Button } from '../../../components/ui';
 import { NextBestTaskCard } from '../NextBestTaskCard';
-import { WorkloadInsightCard } from '../WorkloadInsightCard';
 import { rankNextTasks } from '../../../data/taskRecommendations';
 import { toDateStr } from '../../../data/taskDeadline';
 import {
@@ -197,7 +196,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       {/* ======================================================== */}
       {activeTab === 'dashboard' && (
         <div className="space-y-8 animate-in fade-in duration-150">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             {(() => {
               const bestTask = rankNextTasks(allTasks, currentNow, 1)[0]?.task;
               const showNextBest = !currentDashboard.today.items.some((task) => task.id === bestTask?.id) &&
@@ -207,7 +206,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 <NextBestTaskCard tasks={allTasks} now={currentNow} onTaskClick={onTaskClick} />
               ) : null;
             })()}
-            <WorkloadInsightCard tasks={allTasks} now={currentNow} />
           </div>
 
           {/* Dark Navy Hero Overview Card */}

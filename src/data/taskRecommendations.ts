@@ -181,30 +181,3 @@ export function getNextBestTasks(tasks: SampleTask[], now: Date, limit = 3): Ran
 export function getNextBestTask(tasks: SampleTask[], now: Date): SampleTask | null {
   return rankNextTasks(tasks, now, 1)[0]?.task ?? null;
 }
-
-export function getWorkloadInsight(tasks: SampleTask[], now: Date) {
-  const activeTasks = tasks.filter((task) => task.state === 'active' && !task.isArchived);
-  const today = toDateStr(now);
-
-  const overdueCount = activeTasks.filter((task) => {
-    const deadlineAt = parseDeadline(task.dueDate, task.dueTime);
-    return deadlineAt !== null && deadlineAt.getTime() < now.getTime();
-  }).length;
-
-  const dueTodayCount = activeTasks.filter((task) => task.dueDate === today).length;
-
-  const highPriorityDueSoonCount = activeTasks.filter((task) => {
-    if (task.priority !== 'high') return false;
-    const deadlineAt = parseDeadline(task.dueDate, task.dueTime);
-    if (!deadlineAt) return false;
-    const daysUntil = calendarDaysBetween(now, deadlineAt);
-    return daysUntil >= 0 && daysUntil <= 7 && deadlineAt.getTime() >= now.getTime();
-  }).length;
-
-  return {
-    overdueCount,
-    dueTodayCount,
-    highPriorityDueSoonCount,
-    pendingCount: activeTasks.length,
-  };
-}

@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { createPortal, flushSync } from 'react-dom';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 
 /* ---------- Local calendar-date helpers (YYYY-MM-DD, no time zones) ---------- */
@@ -148,7 +148,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
       top: container.top + container.height / 2 - 160,
       left: container.left + container.width / 2 - 148,
     });
-    setOpen(true);
+    flushSync(() => {
+      setOpen(true);
+    });
     window.dispatchEvent(new CustomEvent('vido:picker-open', { detail: generatedId }));
   };
 
@@ -309,14 +311,14 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         <Calendar className="w-4 h-4 text-[var(--muted)] shrink-0" aria-hidden="true" />
       </button>
 
-      {open && coords ? createPortal(
+      {open ? createPortal(
         <div
           ref={popoverRef}
           role="dialog"
           aria-label={label ? `Choose ${label.replace(/\s*\*$/, '').toLowerCase()}` : 'Choose date'}
           tabIndex={-1}
           onKeyDown={handlePopoverKeyDown}
-          style={{ position: 'fixed', top: coords.top, left: coords.left, zIndex: 1000 }}
+          style={{ position: 'fixed', top: (coords?.top ?? 0), left: (coords?.left ?? 0), zIndex: 1000 }}
           className="w-[18.5rem] p-3 bg-[var(--surface)] border border-[var(--line)] rounded-xl shadow-lg"
         >
           <div className="flex items-center justify-between mb-2">

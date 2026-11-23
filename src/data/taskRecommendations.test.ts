@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { rankNextTasks, getNextBestTask, getWorkloadInsight, parseDeadline } from './taskRecommendations';
+import { rankNextTasks, getNextBestTask, parseDeadline } from './taskRecommendations';
 import { SampleTask } from './sampleTasks';
 
 const now = new Date(2026, 10, 19, 18, 0, 30);
@@ -95,21 +95,6 @@ describe('taskRecommendations', () => {
 
   it('returns null from getNextBestTask when no eligible tasks', () => {
     expect(getNextBestTask([], now)).toBeNull();
-  });
-
-  it('computes workload insight counts', () => {
-    const tasks: SampleTask[] = [
-      task({ id: 'a', title: 'A', priority: 'high', dueDate: '2026-11-15', dueTime: '10:00' }),
-      task({ id: 'b', title: 'B', priority: 'high', dueDate: '2026-11-19', dueTime: '19:00' }),
-      task({ id: 'c', title: 'C', priority: 'medium', dueDate: '2026-11-21', dueTime: '10:00' }),
-      task({ id: 'd', title: 'D', priority: 'low', dueDate: '2026-11-22', dueTime: '10:00', state: 'completed' }),
-    ];
-    expect(getWorkloadInsight(tasks, now)).toEqual({
-      overdueCount: 1,
-      dueTodayCount: 1,
-      highPriorityDueSoonCount: 1,
-      pendingCount: 3,
-    });
   });
 
   it('parses dates by round-tripping parts', () => {

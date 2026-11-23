@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { createPortal, flushSync } from 'react-dom';
 import { Clock } from 'lucide-react';
 
 const pad = (n: number): string => String(n).padStart(2, '0');
@@ -20,11 +20,14 @@ type Period = 'AM' | 'PM';
 type Mode = 'hour' | 'minute';
 
 const HOURS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-const MINUTES = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+const MINUTES = Array.from({ length: 60 }, (_, minute) => minute);
+const FIVE_MINUTE_MARKS = Array.from({ length: 12 }, (_, index) => index * 5);
 
-const DIAL_SIZE = 200;
-const DIAL_RADIUS = 78;
-const ITEM_SIZE = 32;
+const DIAL_SIZE = 240;
+const HOUR_RADIUS = 82;
+const MINUTE_TICK_RADIUS = 104;
+const HOUR_ITEM_SIZE = 32;
+const MINUTE_ITEM_SIZE = 8;
 
 export interface TimePickerProps {
   label?: string;
@@ -65,6 +68,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>('hour');
   const [period, setPeriod] = useState<Period>('AM');
+  const [dragging, setDragging] = useState(false);
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -73,6 +77,53 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   const [coords, setCoords] = useState<{ top: number; left: number } | null>(null);
 
   const periodDisabled = (p: Period): boolean => (p === 'AM' ? 12 * 60 - 1 : 24 * 60 - 1) < minMinutes;
+
+  const hourFromPeriod = (h12: number, p: Period): number =>
+    p === 'PM' ? (h12 % 12) + 12 : h12 % 12;
+
+  const hourDisabled = (h12: number): boolean => {
+    const h24 = hourFromPeriod(h12, period);
+    return h24 * 60 + 59 < minMinutes;
+  };
+
+  const minuteDisabled = (m: number): boolean => valueH24 * 60 + m < minMinutes;
+
+  const lowestMinute = (h24: number): number => Math.min(59, Math.max(0, minMinutes - h24 * 60));
+
+  const selectHour = (h12: number) => {
+    if (hourDisabled(h12)) return;
+    const h24 = hourFromPeriod(h12, period);
+    const minute = Math.max(hasValue ? valueMinute : 0, lowestMinute(h24));
+    onChange(build24(h24, minute));
+    focusDialRef.current = true;
+    setMode('minute');
+  };
+
+  const selectMinute = (m: number) => {
+    if (minuteDisabled(m)) return;
+    onChange(build24(valueH24, m));
+  };
+
+  const selectPeriod = (p: Period) => {
+    if (periodDisabled(p)) return;
+    setPeriod(p);
+    if (hasValue) {
+      const h24 = hourFromPeriod(valueH24 % 12 || 12, p);
+      onChange(build24(h24, Math.max(valueMinute, lowestMinute(h24))));
+    }
+  };
+
+  const clear = () => {
+    onChange('');
+    setMode('hour');
+    closePopover(true);
+  };
+
+  const closePopover = (returnFocus: boolean) => {
+    setOpen(false);
+    setDragging(false);
+    if (returnFocus) triggerRef.current?.focus();
+  };
 
   const updatePosition = () => {
     const trigger = triggerRef.current?.getBoundingClientRect();
@@ -86,7 +137,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
     };
     const popover = popoverRef.current?.getBoundingClientRect();
     const margin = 8;
-    const estimatedWidth = popover?.width ?? 248;
+    const estimatedWidth = popover?.width ?? 260;
     const estimatedHeight = popover?.height ?? 360;
     let left = container.left + container.width / 2 - estimatedWidth / 2;
     let top = container.top + container.height / 2 - estimatedHeight / 2;
@@ -113,18 +164,14 @@ export const TimePicker: React.FC<TimePickerProps> = ({
     };
     setCoords({
       top: container.top + container.height / 2 - 180,
-      left: container.left + container.width / 2 - 124,
+      left: container.left + container.width / 2 - 130,
     });
-    setOpen(true);
+    flushSync(() => {
+      setOpen(true);
+    });
     window.dispatchEvent(new CustomEvent('vido:picker-open', { detail: generatedId }));
   };
 
-  const closePopover = (returnFocus: boolean) => {
-    setOpen(false);
-    if (returnFocus) triggerRef.current?.focus();
-  };
-
-  // Close when the pointer goes down outside the picker.
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
@@ -132,6 +179,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
       if (triggerRef.current?.contains(target)) return;
       if (popoverRef.current?.contains(target)) return;
       setOpen(false);
+      setDragging(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -154,106 +202,112 @@ export const TimePicker: React.FC<TimePickerProps> = ({
       const detail = (event as CustomEvent<string>).detail;
       if (detail && detail !== generatedId && open) {
         setOpen(false);
+        setDragging(false);
       }
     };
     window.addEventListener('vido:picker-open', handler);
     return () => window.removeEventListener('vido:picker-open', handler);
   }, [open, generatedId]);
 
-  // Move DOM focus into the dial when opening or switching hour/minute.
   useEffect(() => {
     if (!open || !focusDialRef.current) return;
     focusDialRef.current = false;
     dialRef.current?.querySelector<HTMLButtonElement>('button[tabindex="0"]')?.focus();
   }, [open, mode]);
 
-  const hourDisabled = (h12: number): boolean => {
-    const h24 = period === 'PM' ? (h12 % 12) + 12 : h12 % 12;
-    return h24 * 60 + 59 < minMinutes;
-  };
+  const selectFromAngle = (clientX: number, clientY: number) => {
+    const dial = dialRef.current;
+    if (!dial) return;
+    const rect = dial.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = clientX - cx;
+    const dy = clientY - cy;
+    let degrees = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+    if (degrees < 0) degrees += 360;
 
-  const minuteDisabled = (m: number): boolean => valueH24 * 60 + m < minMinutes;
-
-  /** Lowest minute allowed within `h24` given the minimum time. */
-  const lowestMinute = (h24: number): number => Math.min(59, Math.max(0, minMinutes - h24 * 60));
-
-  const selectHour = (h12: number) => {
-    const h24 = period === 'PM' ? (h12 % 12) + 12 : h12 % 12;
-    const minute = Math.max(hasValue ? valueMinute : 0, lowestMinute(h24));
-    onChange(build24(h24, minute));
-    focusDialRef.current = true;
-    setMode('minute');
-  };
-
-  const selectMinute = (m: number) => {
-    onChange(build24(valueH24, m));
-    closePopover(true);
-  };
-
-  const stepMinute = (delta: number) => {
-    const next = valueMinute + delta;
-    if (next < 0 || next > 59 || valueH24 * 60 + next < minMinutes) return;
-    onChange(build24(valueH24, next));
-  };
-
-  const selectPeriod = (p: Period) => {
-    if (periodDisabled(p)) return;
-    setPeriod(p);
-    if (hasValue) {
-      const h24 = (valueH24 % 12) + (p === 'PM' ? 12 : 0);
-      onChange(build24(h24, Math.max(valueMinute, lowestMinute(h24))));
+    if (mode === 'hour') {
+      const hour = Math.round(degrees / 30) % 12 || 12;
+      selectHour(hour);
+    } else {
+      const minute = Math.round(degrees / 6) % 60;
+      selectMinute(minute);
     }
   };
 
-  const clear = () => {
-    onChange('');
-    setMode('hour');
-    closePopover(true);
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragging(true);
+    selectFromAngle(event.clientX, event.clientY);
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragging) return;
+    selectFromAngle(event.clientX, event.clientY);
+  };
+
+  const handlePointerUp = () => {
+    setDragging(false);
   };
 
   const items =
     mode === 'hour'
       ? HOURS.map((v) => ({ val: v, disabled: hourDisabled(v), label: String(v), aria: `${v} o'clock` }))
-      : MINUTES.map((v) => ({ val: v, disabled: minuteDisabled(v), label: pad(v), aria: `${v} minutes` }));
+      : FIVE_MINUTE_MARKS.map((v) => ({
+          val: v,
+          disabled: minuteDisabled(v),
+          label: pad(v),
+          aria: `${v} minutes`,
+        }));
 
   const selectedVal = !hasValue ? null : mode === 'hour' ? valueH24 % 12 || 12 : valueMinute;
   const enabledVals = items.filter((i) => !i.disabled).map((i) => i.val);
   const tabVal = selectedVal !== null && enabledVals.includes(selectedVal) ? selectedVal : enabledVals[0];
 
+  const enabledMinutes = MINUTES.filter((minute) => !minuteDisabled(minute));
+
   const handleDialKeyDown = (e: React.KeyboardEvent) => {
-    if (enabledVals.length === 0) return;
-    const current = Number((e.target as HTMLElement).dataset.val);
-    const idx = enabledVals.indexOf(current);
+    const values = mode === 'hour' ? enabledVals : enabledMinutes;
+    if (values.length === 0) return;
+    const current =
+      mode === 'hour'
+        ? Number((e.target as HTMLElement).dataset.val) || valueH24 % 12 || 12
+        : Number((e.target as HTMLElement).dataset.val) || valueMinute;
+    const idx = values.indexOf(current);
+    const safeIndex = idx >= 0 ? idx : 0;
     let next: number;
     switch (e.key) {
       case 'ArrowRight':
       case 'ArrowDown':
-        next = enabledVals[(idx + 1) % enabledVals.length];
+        next = values[(safeIndex + 1) % values.length];
         break;
       case 'ArrowLeft':
       case 'ArrowUp':
-        next = enabledVals[(idx - 1 + enabledVals.length) % enabledVals.length];
+        next = values[(safeIndex - 1 + values.length) % values.length];
         break;
       case 'Home':
-        next = enabledVals[0];
+        next = values[0];
         break;
       case 'End':
-        next = enabledVals[enabledVals.length - 1];
+        next = values[values.length - 1];
         break;
       default:
         return;
     }
     e.preventDefault();
-    dialRef.current?.querySelector<HTMLButtonElement>(`[data-val="${next}"]`)?.focus();
+    if (mode === 'hour') {
+      dialRef.current?.querySelector<HTMLButtonElement>(`[data-val="${next}"]`)?.focus();
+    } else {
+      selectMinute(next);
+      dialRef.current?.focus();
+    }
   };
 
   const handlePopoverKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
-      // Close only the picker, not a surrounding modal.
       e.stopPropagation();
       closePopover(true);
     } else if (e.key === 'Tab') {
-      // Hand focus back to the trigger so Tab continues from there.
       closePopover(true);
     }
   };
@@ -267,6 +321,16 @@ export const TimePicker: React.FC<TimePickerProps> = ({
   const tabIdle = 'text-[var(--muted)] hover:bg-[var(--canvas)]';
   const smallBtn =
     'px-2.5 py-1 rounded-lg text-xs font-semibold border border-[var(--line)] text-[var(--ink)] hover:bg-[var(--canvas)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent';
+
+  const radius = mode === 'hour' ? HOUR_RADIUS : MINUTE_TICK_RADIUS;
+  const handAngle = !hasValue
+    ? -90
+    : mode === 'hour'
+      ? ((valueH24 % 12) * 30 - 90)
+      : (valueMinute * 6 - 90);
+  const handLength = radius - 14;
+  const handX = DIAL_SIZE / 2 + handLength * Math.cos((handAngle * Math.PI) / 180);
+  const handY = DIAL_SIZE / 2 + handLength * Math.sin((handAngle * Math.PI) / 180);
 
   return (
     <div className="w-full relative">
@@ -294,15 +358,15 @@ export const TimePicker: React.FC<TimePickerProps> = ({
         <Clock className="w-4 h-4 text-[var(--muted)] shrink-0" aria-hidden="true" />
       </button>
 
-      {open && coords ? createPortal(
+      {open ? createPortal(
         <div
           ref={popoverRef}
           role="dialog"
           aria-label={label ? `Choose ${label.replace(/\s*\(optional\)\s*$/i, '').toLowerCase()}` : 'Choose time'}
           tabIndex={-1}
           onKeyDown={handlePopoverKeyDown}
-          style={{ position: 'fixed', top: coords.top, left: coords.left, zIndex: 1000 }}
-          className="w-[15.5rem] p-3 bg-[var(--surface)] border border-[var(--line)] rounded-xl shadow-lg"
+          style={{ position: 'fixed', top: (coords?.top ?? 0), left: (coords?.left ?? 0), zIndex: 1000 }}
+          className="w-[17rem] p-3 bg-[var(--surface)] border border-[var(--line)] rounded-xl shadow-lg"
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-0.5">
@@ -360,14 +424,45 @@ export const TimePicker: React.FC<TimePickerProps> = ({
             ref={dialRef}
             role="group"
             aria-label={mode === 'hour' ? 'Select hour' : 'Select minute'}
-            onKeyDown={handleDialKeyDown}
-            className="relative mx-auto rounded-full bg-[var(--canvas)]"
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerLeave={handlePointerUp}
+            className="relative mx-auto rounded-full bg-[var(--canvas)] select-none touch-none"
             style={{ width: DIAL_SIZE, height: DIAL_SIZE }}
+            tabIndex={0}
+            onKeyDown={handleDialKeyDown}
           >
+            <svg
+              className="absolute inset-0 pointer-events-none"
+              width={DIAL_SIZE}
+              height={DIAL_SIZE}
+              aria-hidden="true"
+            >
+              <line
+                x1={DIAL_SIZE / 2}
+                y1={DIAL_SIZE / 2}
+                x2={handX}
+                y2={handY}
+                stroke="var(--accent)"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <circle
+                cx={DIAL_SIZE / 2}
+                cy={DIAL_SIZE / 2}
+                r="4"
+                fill="var(--accent)"
+              />
+              <circle cx={handX} cy={handY} r="6" fill="var(--accent)" />
+            </svg>
+
             {items.map((item, i) => {
+              const radius = mode === 'hour' ? HOUR_RADIUS : MINUTE_TICK_RADIUS;
+              const size = mode === 'hour' ? HOUR_ITEM_SIZE : MINUTE_ITEM_SIZE;
               const angle = (i / items.length) * 2 * Math.PI - Math.PI / 2;
-              const left = DIAL_SIZE / 2 + DIAL_RADIUS * Math.cos(angle) - ITEM_SIZE / 2;
-              const top = DIAL_SIZE / 2 + DIAL_RADIUS * Math.sin(angle) - ITEM_SIZE / 2;
+              const left = DIAL_SIZE / 2 + radius * Math.cos(angle) - size / 2;
+              const top = DIAL_SIZE / 2 + radius * Math.sin(angle) - size / 2;
               const isSelected = item.val === selectedVal;
 
               return (
@@ -380,13 +475,19 @@ export const TimePicker: React.FC<TimePickerProps> = ({
                   disabled={item.disabled}
                   tabIndex={item.val === tabVal ? 0 : -1}
                   onClick={() => (mode === 'hour' ? selectHour(item.val) : selectMinute(item.val))}
-                  style={{ left, top, width: ITEM_SIZE, height: ITEM_SIZE }}
-                  className={`absolute rounded-full text-sm tabular-nums transition-colors ${
-                    isSelected
-                      ? 'bg-[var(--accent)] text-white font-semibold'
-                      : item.disabled
-                        ? 'text-[var(--faint)] opacity-40 cursor-not-allowed'
-                        : 'text-[var(--ink)] hover:bg-[var(--surface)]'
+                  style={{ left, top, width: size, height: size }}
+                  className={`absolute rounded-full text-[10px] tabular-nums transition-colors ${
+                    mode === 'hour'
+                      ? isSelected
+                        ? 'bg-[var(--accent)] text-white font-semibold'
+                        : item.disabled
+                          ? 'text-[var(--faint)] opacity-40 cursor-not-allowed'
+                          : 'text-[var(--ink)] hover:bg-[var(--surface)]'
+                      : isSelected
+                        ? 'bg-[var(--accent)] text-white font-semibold'
+                        : item.disabled
+                          ? 'text-[var(--faint)] opacity-40 cursor-not-allowed'
+                          : 'text-[var(--ink)] hover:bg-[var(--surface)]'
                   }`}
                 >
                   {item.label}
@@ -397,29 +498,7 @@ export const TimePicker: React.FC<TimePickerProps> = ({
 
           <div className="mt-3 flex items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
-              {mode === 'minute' && (
-                <>
-                  <button
-                    type="button"
-                    aria-label="Subtract one minute"
-                    disabled={valueMinute - 1 < 0 || valueH24 * 60 + valueMinute - 1 < minMinutes}
-                    onClick={() => stepMinute(-1)}
-                    className={smallBtn}
-                  >
-                    −1
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Add one minute"
-                    disabled={valueMinute + 1 > 59}
-                    onClick={() => stepMinute(1)}
-                    className={smallBtn}
-                  >
-                    +1
-                  </button>
-                </>
-              )}
-              {clearable && mode === 'hour' && (
+              {clearable && (
                 <button type="button" disabled={!hasValue} onClick={clear} className={smallBtn}>
                   Clear
                 </button>

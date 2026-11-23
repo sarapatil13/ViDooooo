@@ -13,7 +13,7 @@ const Harness = ({ initial = '', minTime }: { initial?: string; minTime?: string
   );
 };
 
-const openPicker = () => fireEvent.click(screen.getByLabelText(/due time/i));
+const openPicker = () => fireEvent.click(screen.getByRole('button', { name: /due time/i }));
 const btn = (name: string | RegExp) => screen.getByRole('button', { name });
 
 describe('TimePicker', () => {
@@ -34,6 +34,7 @@ describe('TimePicker', () => {
 
     fireEvent.click(btn('30 minutes'));
     expect(screen.getByTestId('value')).toHaveTextContent('18:30');
+    fireEvent.click(btn('Done'));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.getByLabelText(/due time/i)).toHaveTextContent('6:30 PM');
   });
@@ -48,16 +49,36 @@ describe('TimePicker', () => {
     expect(screen.getByTestId('value')).toHaveTextContent('12:00');
   });
 
-  it('fine-tunes by single minutes', () => {
-    render(<Harness initial="09:10" />);
+  it('selects exact minutes such as 11:58, 09:37 and 14:52', () => {
+    render(<Harness />);
     openPicker();
+    fireEvent.click(btn('PM'));
+    fireEvent.click(btn("11 o'clock"));
     fireEvent.click(btn('Minute'));
+    fireEvent.click(btn('55 minutes'));
+    const minuteDial = screen.getByRole('group', { name: /select minute/i });
+    fireEvent.keyDown(minuteDial, { key: 'ArrowRight' });
+    fireEvent.keyDown(minuteDial, { key: 'ArrowRight' });
+    fireEvent.keyDown(minuteDial, { key: 'ArrowRight' });
+    expect(screen.getByTestId('value')).toHaveTextContent('23:58');
 
-    fireEvent.click(btn(/add one minute/i));
-    expect(screen.getByTestId('value')).toHaveTextContent('09:11');
-    fireEvent.click(btn(/subtract one minute/i));
-    fireEvent.click(btn(/subtract one minute/i));
-    expect(screen.getByTestId('value')).toHaveTextContent('09:09');
+    fireEvent.click(btn('Hour'));
+    fireEvent.click(btn('AM'));
+    fireEvent.click(btn("9 o'clock"));
+    fireEvent.click(btn('Minute'));
+    fireEvent.click(btn('35 minutes'));
+    fireEvent.keyDown(minuteDial, { key: 'ArrowRight' });
+    fireEvent.keyDown(minuteDial, { key: 'ArrowRight' });
+    expect(screen.getByTestId('value')).toHaveTextContent('09:37');
+
+    fireEvent.click(btn('Hour'));
+    fireEvent.click(btn('PM'));
+    fireEvent.click(btn("2 o'clock"));
+    fireEvent.click(btn('Minute'));
+    fireEvent.click(btn('50 minutes'));
+    fireEvent.keyDown(minuteDial, { key: 'ArrowRight' });
+    fireEvent.keyDown(minuteDial, { key: 'ArrowRight' });
+    expect(screen.getByTestId('value')).toHaveTextContent('14:52');
   });
 
   it('clears the time again', () => {
@@ -86,7 +107,6 @@ describe('TimePicker', () => {
       expect(screen.getByTestId('value')).toHaveTextContent('18:01');
       expect(btn('0 minutes')).toBeDisabled();
       expect(btn('5 minutes')).toBeEnabled();
-      expect(btn(/subtract one minute/i)).toBeDisabled();
     });
 
     it('allows any hour after the boundary hour', () => {
