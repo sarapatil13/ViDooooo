@@ -21,6 +21,9 @@ describe('WorkspaceSidebar', () => {
 
     expect(screen.getByText('DEMO')).toBeInTheDocument();
     expect(screen.getByText('Logged-in demo preview')).toBeInTheDocument();
+    expect(screen.getByRole('complementary', { name: /workspace navigation/i })).toHaveClass(
+      'workspace-sidebar-scrollbar'
+    );
     expect(screen.getByRole('link', { name: /dashboard/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /tasks 15/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /calendar/i })).toBeInTheDocument();

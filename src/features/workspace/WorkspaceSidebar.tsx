@@ -127,7 +127,7 @@ export const WorkspaceSidebar: React.FC<WorkspaceSidebarProps> = ({
       aria-label="Workspace navigation"
       className={`w-64 bg-[var(--dark)] text-gray-200 flex flex-col justify-between shrink-0 sticky ${
         isPreview ? 'top-[45px] h-[calc(100vh-45px)]' : 'top-0 h-screen'
-      } overflow-y-auto p-5 select-none`}
+      } workspace-sidebar-scrollbar overflow-y-auto p-5 select-none`}
     >
       <div>
         {/* Brand Header */}

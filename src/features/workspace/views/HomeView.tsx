@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { SampleTask, SAMPLE_TASKS } from '../../../data/sampleTasks';
 import {
   getHomeDashboardTasks,
@@ -53,12 +53,16 @@ export const HomeView: React.FC<HomeViewProps> = ({
   user,
   tasks,
   initialTab = 'dashboard',
-  initialStatus = 'today',
+  initialStatus = 'all',
   onTaskClick,
   onToggleTask,
   onNewTaskClick,
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const navigationStateStatus = (location.state as { status?: StatusFilter } | null)?.status;
+  const effectiveInitialStatus = navigationStateStatus ?? initialStatus;
+
   const [currentNow, setCurrentNow] = useState<Date>(() => nowProp ?? new Date());
   const allTasks = tasks ?? SAMPLE_TASKS;
   const benchmarkDateStr = isPreview ? BENCHMARK_DATE_STR : toDateStr(currentNow);
@@ -76,7 +80,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
     'today' | 'needsAttention' | 'upcoming' | 'completed'
   >('today');
 
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>(initialStatus);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(effectiveInitialStatus);
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
   const [priorityFilter, setPriorityFilter] = useState<PriorityFilter>('all');
   const [isAddFilterOpen, setIsAddFilterOpen] = useState(false);
@@ -86,8 +90,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
   }, [initialTab]);
 
   useEffect(() => {
-    setStatusFilter(initialStatus);
-  }, [initialStatus]);
+    setStatusFilter(navigationStateStatus ?? initialStatus);
+  }, [navigationStateStatus, initialStatus]);
 
   useEffect(() => {
     if (nowProp) {
@@ -402,7 +406,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   onClick={() => {
                     setStatusFilter(dashboardCategory);
                     try {
-                      navigate(`${basePath}/tasks`);
+                      navigate(`${basePath}/tasks`, { state: { status: dashboardCategory } });
                     } catch {
                       setActiveTab('tasks');
                     }
