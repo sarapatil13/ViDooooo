@@ -66,7 +66,7 @@
 }
 
 .workspace-sidebar-scrollbar::-webkit-scrollbar {
-  width: 10px;
+  width: 6px;
 }
 
 .workspace-sidebar-scrollbar::-webkit-scrollbar-track {
@@ -74,12 +74,11 @@
 }
 
 .workspace-sidebar-scrollbar::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--accent) 58%, var(--dark));
+  background: color-mix(in srgb, var(--accent) 45%, var(--dark));
   background-clip: padding-box;
-  border: 3px solid transparent;
   border-radius: 999px;
 }
 
 .workspace-sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: color-mix(in srgb, var(--accent) 78%, var(--dark));
+  background-color: color-mix(in srgb, var(--accent) 75%, var(--dark));
 }

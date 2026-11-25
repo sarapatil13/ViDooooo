@@ -406,8 +406,8 @@ describe('Workspace Views and Modals', () => {
         </MemoryRouter>
       );
 
-      // Header indicates Tasks view
-      expect(screen.getByRole('heading', { name: /^tasks$/i })).toBeInTheDocument();
+      // TopBar provides persistent workspace context while view provides its heading
+      expect(screen.getByRole('banner')).toHaveTextContent('Workspace');
       expect(screen.getByRole('heading', { name: /today's work/i })).toBeInTheDocument();
 
       // Verify persistent demo preview banner and single unmissable back button
@@ -584,6 +584,7 @@ describe('Workspace Views and Modals', () => {
       expect(isKnownWorkspacePath('/workspace/archived', '/workspace')).toBe(true);
       expect(isKnownWorkspacePath('/workspace/calendar', '/workspace')).toBe(true);
       expect(isKnownWorkspacePath('/workspace/analytics', '/workspace')).toBe(true);
+      expect(isKnownWorkspacePath('/workspace/settings', '/workspace')).toBe(true);
       expect(isKnownWorkspacePath('/workspace/team/alpha-1', '/workspace')).toBe(true);
 
       // Invalid sub-endpoints (MUST be rejected and return false)
