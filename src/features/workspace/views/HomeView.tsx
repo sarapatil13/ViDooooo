@@ -9,8 +9,6 @@ import { BENCHMARK_DATE_STR, BENCHMARK_DATE_TIME } from '../../../data/sampleTas
 import { formatTopBarDate } from '../../../utils/dateUtils';
 import { TaskRow } from '../TaskRow';
 import { Button } from '../../../components/ui';
-import { NextBestTaskCard } from '../NextBestTaskCard';
-import { rankNextTasks } from '../../../data/taskRecommendations';
 import { toDateStr } from '../../../data/taskDeadline';
 import {
   CheckSquare,
@@ -202,18 +200,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
       {/* ======================================================== */}
       {activeTab === 'dashboard' && (
         <div className="space-y-8 animate-in fade-in duration-150">
-          <div className="grid grid-cols-1 gap-4">
-            {(() => {
-              const bestTask = rankNextTasks(allTasks, currentNow, 1)[0]?.task;
-              const showNextBest = !currentDashboard.today.items.some((task) => task.id === bestTask?.id) &&
-                !currentDashboard.needsAttention.items.some((task) => task.id === bestTask?.id) &&
-                !currentDashboard.upcoming.items.some((task) => task.id === bestTask?.id);
-              return showNextBest ? (
-                <NextBestTaskCard tasks={allTasks} now={currentNow} onTaskClick={onTaskClick} />
-              ) : null;
-            })()}
-          </div>
-
           {/* Dark Navy Hero Overview Card */}
           <section
             aria-label="Overview Command Center"
