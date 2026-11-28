@@ -37,6 +37,11 @@ import { Team } from '../teams/types';
 import { useCalendar } from './useCalendar';
 import { usePlanningTargets } from './usePlanningTargets';
 import { useCategories } from './useCategories';
+import {
+  fetchUserTasks,
+  createUserTask,
+  updateUserTask,
+} from '../../lib/taskStore';
 
 /**
  * The demo preview is anchored to a fixed day (see AGENTS.md), so its pickers
@@ -141,62 +146,46 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
     return () => window.removeEventListener('focus', handleFocus);
   }, [user.id, user.email, isPreview, loading]);
 
-  // Calendar events and planning targets live in Firestore for signed-in
-  // users and in localStorage for the shareable preview.
+  // Calendar events, planning targets, and custom categories live in the NestJS
+  // backend database for signed-in users.
   const calendar = useCalendar(authUser?.uid, isLive ? 'live' : 'demo');
   const planningTargets = usePlanningTargets(authUser?.uid, isLive ? 'live' : 'demo');
   const categoriesState = useCategories(authUser?.uid, isLive ? 'live' : 'demo');
 
-  // Task state: for preview, use SAMPLE_TASKS. For authenticated users, scope to user ID.
-  const userStorageKey = authUser
-    ? `vido_tasks_${authUser.uid}`
-    : 'vido_live_workspace_tasks';
-
+  // Task state: for preview, use SAMPLE_TASKS. For authenticated users, fetch from NestJS backend API.
   const [tasks, setTasks] = useState<SampleTask[]>(() => {
     if (isPreview) {
       return SAMPLE_TASKS;
     }
-    try {
-      const saved = localStorage.getItem(userStorageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
-      }
-    } catch {
-      // Fallback
-    }
-    // New users start with a clean, empty personal workspace
     return [];
   });
 
-  // Re-sync tasks if active user changes
+  // Re-sync tasks from NestJS backend when active user changes
   useEffect(() => {
-    if (!isPreview && authUser) {
-      try {
-        const saved = localStorage.getItem(`vido_tasks_${authUser.uid}`);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed)) {
-            setTasks(parsed);
-            return;
-          }
-        }
-      } catch {
-        // Ignore
-      }
+    if (isPreview) {
+      setTasks(SAMPLE_TASKS);
+      return;
+    }
+    if (!authUser?.uid) {
       setTasks([]);
+      return;
     }
-  }, [authUser?.uid, isPreview]);
 
-  useEffect(() => {
-    if (!isPreview && authUser) {
-      try {
-        localStorage.setItem(`vido_tasks_${authUser.uid}`, JSON.stringify(tasks));
-      } catch {
-        // Ignore quota errors
-      }
-    }
-  }, [tasks, isPreview, authUser?.uid]);
+    let isCurrent = true;
+    fetchUserTasks(authUser.uid)
+      .then((serverTasks) => {
+        if (isCurrent) {
+          setTasks(serverTasks);
+        }
+      })
+      .catch(() => {
+        // Handled via memory fallback
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [authUser?.uid, isPreview]);
 
   const [selectedTask, setSelectedTask] = useState<SampleTask | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -258,6 +247,9 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
 
   const handleCreateTask = (newTask: SampleTask) => {
     setTasks((prev) => [newTask, ...prev]);
+    if (!isPreview && authUser?.uid) {
+      void createUserTask(newTask, authUser.uid).catch(() => undefined);
+    }
     setToastMessage(`Task "${newTask.title}" added to your workspace.`);
     setTimeout(() => setToastMessage(null), 3500);
   };
@@ -265,23 +257,29 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
   const handleToggleTask = (taskToToggle: SampleTask) => {
     const isNowCompleted = taskToToggle.state !== 'completed';
     const nowIso = new Date().toISOString();
+    const nextCheckpoints = [
+      ...(taskToToggle.checkpoints || []),
+      {
+        id: `cp-${Date.now()}`,
+        timestamp: nowIso,
+        note: isNowCompleted
+          ? 'Task marked as completed.'
+          : 'Task reopened in workspace.',
+      },
+    ];
+
+    const updates: Partial<SampleTask> = {
+      state: isNowCompleted ? 'completed' : 'active',
+      completedAt: isNowCompleted ? nowIso : undefined,
+      checkpoints: nextCheckpoints,
+    };
+
     setTasks((prev) =>
       prev.map((t) =>
         t.id === taskToToggle.id
           ? {
               ...t,
-              state: isNowCompleted ? 'completed' : 'active',
-              completedAt: isNowCompleted ? nowIso : undefined,
-              checkpoints: [
-                ...(t.checkpoints || []),
-                {
-                  id: `cp-${Date.now()}`,
-                  timestamp: nowIso,
-                  note: isNowCompleted
-                    ? 'Task marked as completed.'
-                    : 'Task reopened in workspace.',
-                },
-              ],
+              ...updates,
             }
           : t
       )
@@ -291,11 +289,13 @@ export const WorkspaceLayout: React.FC<WorkspaceLayoutProps> = ({
         prev
           ? {
               ...prev,
-              state: isNowCompleted ? 'completed' : 'active',
-              completedAt: isNowCompleted ? nowIso : undefined,
+              ...updates,
             }
           : null
       );
+    }
+    if (!isPreview && authUser?.uid) {
+      void updateUserTask(taskToToggle.id, updates, authUser.uid).catch(() => undefined);
     }
     setToastMessage(
       isNowCompleted

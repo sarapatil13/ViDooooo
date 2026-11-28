@@ -231,7 +231,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const handleResetDemoData = () => {
     if (window.confirm('Reset all demo tasks back to original template values?')) {
       try {
-        localStorage.removeItem('vido_live_workspace_tasks');
+        localStorage.removeItem('vido-demo-calendar-v1');
+        localStorage.removeItem('vido-demo-planning-targets-v1');
         localStorage.removeItem('vido-demo-custom-categories-v1');
       } catch {}
       setResetNotice(true);
@@ -375,7 +376,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Theme Option Cards */}
+              <div className="space-y-3.5">
                 {ACCENTS.map((accent) => {
                   const isSelected = activeAccent === accent.id;
                   return (
@@ -386,62 +388,114 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       aria-pressed={isSelected}
                       onClick={() => handleSelectAccent(accent.id)}
                       onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && handleSelectAccent(accent.id)}
-                      className={`p-5 rounded-2xl border bg-[var(--surface)] cursor-pointer transition-all ${
+                      className={`p-4 sm:p-5 rounded-2xl border bg-[var(--surface)] cursor-pointer transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
                         isSelected
-                          ? 'border-[var(--accent)] ring-2 ring-[var(--accent)] shadow-md'
-                          : 'border-[var(--line)] hover:border-gray-300 hover:shadow-xs'
+                          ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/30 bg-[var(--accent-soft)]/20 shadow-xs'
+                          : 'border-[var(--line)] hover:border-gray-300 hover:bg-[var(--canvas)]/50 hover:shadow-2xs'
                       }`}
                       data-testid={`accent-card-${accent.id}`}
                     >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2.5">
-                          <span
-                            className="w-5 h-5 rounded-full border border-black/10 shrink-0"
-                            style={{ backgroundColor: accent.hex }}
-                          />
-                          <span className="font-bold text-base text-[var(--ink)]">{accent.name}</span>
+                      {/* Left: Swatch Icon & Details */}
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <span
+                          className="w-11 h-11 rounded-xl border border-black/10 shrink-0 shadow-2xs flex items-center justify-center transition-transform"
+                          style={{ backgroundColor: accent.hex }}
+                        >
+                          {isSelected && <Check className="w-5 h-5 text-white" />}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-base text-[var(--ink)]">{accent.name}</span>
+                            <span className="text-xs font-mono font-medium px-2 py-0.5 rounded bg-[var(--canvas)] border border-[var(--line)] text-[var(--muted)]">
+                              Hex {accent.hex}
+                            </span>
+                          </div>
+                          <p className="text-xs sm:text-sm text-[var(--muted)] mt-1 leading-relaxed">
+                            {accent.desc}
+                          </p>
                         </div>
+                      </div>
+
+                      {/* Right: Color Tones Preview & Action Badge */}
+                      <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[var(--canvas)] border border-[var(--line)]">
+                          <span className="text-[11px] font-mono font-medium text-[var(--muted)] mr-1">Tones</span>
+                          <span
+                            className="w-5 h-5 rounded-md border border-black/10 shadow-2xs"
+                            style={{ backgroundColor: accent.hex }}
+                            title={`Primary: ${accent.hex}`}
+                          />
+                          <span
+                            className="w-5 h-5 rounded-md border border-black/10 shadow-2xs"
+                            style={{ backgroundColor: accent.bgHex }}
+                            title={`Soft background: ${accent.bgHex}`}
+                          />
+                        </div>
+
                         {isSelected ? (
-                          <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-[var(--accent)] bg-[var(--accent-soft)] px-2.5 py-0.5 rounded-full">
-                            <Check className="w-3.5 h-3.5" /> Active
+                          <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[var(--accent)] bg-[var(--accent-soft)] px-3 py-1.5 rounded-full border border-[var(--accent)]/30 shadow-2xs shrink-0">
+                            <Check className="w-4 h-4" /> Active
                           </span>
                         ) : (
-                          <span className="text-xs text-[var(--faint)] font-mono uppercase">Select</span>
+                          <span className="inline-flex items-center text-xs font-semibold text-[var(--muted)] px-3.5 py-1.5 rounded-full border border-[var(--line)] hover:border-[var(--ink)]/30 hover:text-[var(--ink)] transition-colors shrink-0">
+                            Select
+                          </span>
                         )}
-                      </div>
-                      <p className="text-xs text-[var(--muted)] mb-4 leading-relaxed">{accent.desc}</p>
-                      <div className="flex items-center justify-between text-xs font-mono text-[var(--faint)] border-t border-[var(--line)] pt-3">
-                        <span>Hex {accent.hex}</span>
-                        <span
-                          className="w-12 h-3 rounded-full"
-                          style={{ backgroundColor: accent.bgHex }}
-                          title={`Background soft: ${accent.bgHex}`}
-                        />
                       </div>
                     </div>
                   );
                 })}
               </div>
 
-              {/* Live Theme Preview */}
-              <div className="p-6 rounded-2xl border border-[var(--line)] bg-[var(--surface)] space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted)] flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-[var(--accent)]" /> Live Theme Preview
-                  </span>
-                  <Badge variant="accent">Previewing: {activeAccent.toUpperCase()}</Badge>
+              {/* Live Theme Preview Showcase */}
+              <div className="p-6 rounded-2xl border border-[var(--line)] bg-[var(--surface)] space-y-4 shadow-2xs">
+                <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-[var(--accent)]" />
+                    <div>
+                      <h3 className="text-base font-bold text-[var(--ink)]">Live Theme Preview</h3>
+                      <p className="text-xs text-[var(--muted)]">
+                        Real-time demonstration of how the selected palette styles workspace components
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="accent" className="px-3 py-1 text-xs font-bold">
+                    Previewing: {activeAccent.toUpperCase()}
+                  </Badge>
                 </div>
-                <div className="flex flex-wrap items-center gap-3 pt-2">
-                  <Button variant="primary" size="md">
-                    Primary Button
+
+                {/* Simulated Task Component */}
+                <div className="p-4 rounded-xl border border-[var(--line)] bg-[var(--canvas)] flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-6 h-6 rounded-lg bg-[var(--accent)] text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <Check className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-[var(--ink)] truncate">
+                        Deliver quarterly strategic roadmap & deliverables
+                      </p>
+                      <p className="text-xs text-[var(--muted)] mt-0.5">
+                        Due today · 17:00 · <span className="font-semibold text-[var(--accent)]">High Priority</span>
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--accent)]/30 shrink-0">
+                    Work Project
+                  </span>
+                </div>
+
+                {/* Simulated Controls */}
+                <div className="flex flex-wrap items-center gap-3 pt-1">
+                  <Button variant="primary" size="md" className="px-5 font-semibold">
+                    <Plus className="w-4 h-4 mr-1.5" /> Primary Button
                   </Button>
-                  <Button variant="secondary" size="md">
+                  <Button variant="secondary" size="md" className="px-5 font-semibold">
                     Secondary Button
                   </Button>
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--accent)]/30">
+                  <span className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--accent)]/30 shadow-2xs">
                     Interactive Tag
                   </span>
-                  <span className="text-sm font-semibold text-[var(--accent)] underline cursor-pointer">
+                  <span className="text-sm font-semibold text-[var(--accent)] underline hover:opacity-80 transition-opacity cursor-pointer">
                     Accent Hyperlink
                   </span>
                 </div>

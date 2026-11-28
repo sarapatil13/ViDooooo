@@ -5,8 +5,9 @@ import {
   type UserCategory,
 } from '../../data/categories';
 import {
+  createUserCategory,
+  deleteUserCategory,
   subscribeUserCategories,
-  updateUserCustomCategories,
 } from '../../lib/categoryStore';
 
 const DEMO_CATEGORIES_STORAGE_KEY = 'vido-demo-custom-categories-v1';
@@ -88,7 +89,7 @@ export function useCategories(
       if (mode === 'live' && uid) {
         const next = [...liveCustom.filter((c) => c.id !== id), newCategory];
         setLiveCustom(next);
-        await updateUserCustomCategories(uid, next);
+        await createUserCategory(uid, { name: trimmed, color: params.color });
       } else {
         setDemoCustom((prev) => [...prev.filter((c) => c.id !== id), newCategory]);
       }
@@ -103,7 +104,7 @@ export function useCategories(
       if (mode === 'live' && uid) {
         const next = liveCustom.filter((c) => c.id !== categoryId);
         setLiveCustom(next);
-        await updateUserCustomCategories(uid, next);
+        await deleteUserCategory(uid, categoryId);
       } else {
         setDemoCustom((prev) => prev.filter((c) => c.id !== categoryId));
       }
